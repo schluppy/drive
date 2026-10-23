@@ -7,7 +7,7 @@ auth           on
 tls            on
 tls_trust_file /etc/ssl/certs/ca-certificates.crt
 logfile        -
-set_from_header on
+set_from_header auto
 
 account        drive
 host           SMTP-SERVER
