@@ -1,4 +1,4 @@
-<a class="held" href="{% url 'fahrzeuge:uebersicht' k.f.pk %}">
+<a class="held" href="{% url 'logbuch:liste' k.f.pk %}">
   {% if k.f.foto %}<img class="foto" src="{% url 'fahrzeuge:foto' k.f.pk %}" alt="" loading="lazy">{% else %}<div class="foto foto-leer" aria-hidden="true">{% if k.f.ohne_motor %}🚐{% else %}🚗{% endif %}</div>{% endif %}
   <div class="karte">
     <h3>{{ k.f }}</h3>
