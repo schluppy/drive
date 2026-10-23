@@ -102,9 +102,10 @@ def linien(serien, einheit="", stellen_wert=2, hoehe=H, flaeche=False, null_basi
         teile.append(f'<polyline points="{pfad}" fill="none" stroke="{farbe}" stroke-width="2"{strich} '
                      f'stroke-linejoin="round"/>')
         if len(pts) <= 120:
+            radius = 2 if len(pts) <= 40 else 1.5   # dichte Reihen: kleinere Punkte, Linie bleibt sichtbar
             for d, v, titel in pts:
                 text = titel or f'{s["name"]}: {deutsch(v, stellen_wert)} {einheit} ({d:%d.%m.%y})'
-                teile.append(f'<circle cx="{x(d):.1f}" cy="{y(v):.1f}" r="3" fill="{farbe}">'
+                teile.append(f'<circle cx="{x(d):.1f}" cy="{y(v):.1f}" r="{radius}" fill="{farbe}">'
                              f'<title>{escape(text)}</title></circle>')
     return _rahmen(hoehe, "".join(teile), ", ".join(s["name"] for s in serien))
 
