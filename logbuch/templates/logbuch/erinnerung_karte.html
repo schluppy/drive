@@ -4,9 +4,9 @@
   <div class="leiste-icons"><h3>{% kategorie_marke e.kategorie %} {{ e.kategorie }}</h3>{% if e.wiederkehrend %}<span title="wiederkehrend" aria-label="wiederkehrend">🔁</span>{% endif %}</div>
   <div style="padding-left:2.6rem">
     {% if e.notiz %}<p>{{ e.notiz }}</p>{% endif %}
-    {% if e.faellig_km is not None %}<div>⏲️ {{ e.faellig_km|zahl }} km <span class="{% if fl.km_rest < 0 %}rot{% else %}gruen{% endif %}">{{ fl.km_rest|vorzeichen }} km</span></div>
+    {% if e.faellig_km is not None %}<div{% if e.faellig_am and fl.zuerst == "km" %} style="font-weight:600"{% endif %}>⏲️ {{ e.faellig_km|zahl }} km <span class="{% if fl.km_rest < 0 %}rot{% else %}gruen{% endif %}">{{ fl.km_rest|vorzeichen }} km</span></div>
     {% elif fl.km_geschaetzt %}<div class="kursiv">⏲️ {{ fl.km_geschaetzt|zahl }} km {{ fl.km_geschaetzt|sub:tachostand|vorzeichen }} km</div>{% endif %}
-    {% if e.faellig_am %}<div>📅 {{ e.faellig_am|date:"d.m.y" }} <span class="{% if fl.tage_rest < 0 %}rot{% else %}gruen{% endif %}">{{ fl.tage_rest|zeitraum }}</span></div>
+    {% if e.faellig_am %}<div{% if e.faellig_km is not None and fl.zuerst == "datum" %} style="font-weight:600"{% endif %}>📅 {{ e.faellig_am|date:"d.m.y" }} <span class="{% if fl.tage_rest < 0 %}rot{% else %}gruen{% endif %}">{{ fl.tage_rest|zeitraum }}</span></div>
     {% elif fl.datum_geschaetzt %}<div class="kursiv">📅 {{ fl.datum_geschaetzt|date:"d.m.y" }} {{ fl.tage_bis|zeitraum }}</div>{% endif %}
   </div>
   <div class="knoepfe" style="margin:.6rem 0 0 2.6rem">

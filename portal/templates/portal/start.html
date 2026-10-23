@@ -4,11 +4,13 @@
 <div class="kopfzeile"><h1>Fahrzeuge der Familie {{ user.familie }}</h1><a class="knopf zweit klein" href="{% url 'fahrzeuge:neu' %}">+ Fahrzeug</a></div>
 {% if anstehend %}
 <h2>Demnächst</h2>
+<p class="leise klein">Fällig ist, was zuerst eintritt: Kilometerstand oder Datum.</p>
 {% for f, fl in anstehend %}
 <a class="karte" href="{% url 'logbuch:erinnerungen' f.pk %}" style="--kat:{{ fl.erinnerung.kategorie.farbe }}">
   <span class="balken"></span>
   <div class="leiste-icons"><span>{% kategorie_marke fl.erinnerung.kategorie %} {{ fl.erinnerung.kategorie }}{% if fl.erinnerung.notiz %} – {{ fl.erinnerung.notiz }}{% endif %}</span>
-  <span class="klein {% if fl.ueberfaellig %}rot{% endif %}">{% if fl.tage_bis is not None %}{{ fl.tage_bis|zeitraum }}{% elif fl.km_rest is not None %}{{ fl.km_rest|vorzeichen }} km{% endif %}</span></div>
+  <span class="klein {% if fl.ueberfaellig %}rot{% endif %}">{% if fl.zuerst == 'km' %}{{ fl.km_rest|vorzeichen }} km{% else %}{{ fl.tage_rest|zeitraum }}{% endif %}</span></div>
+  {% with e=fl.erinnerung %}<div class="klein">{% if fl.zuerst == 'km' %}<strong>⏲️ {{ e.faellig_km|km }}</strong>{% if fl.tage_km is not None and fl.km_rest >= 0 %} <span class="leise kursiv">(ca. {{ fl.tage_km|zeitraum }})</span>{% endif %}{% if e.faellig_am %} <span class="leise">oder 📅 {{ e.faellig_am|date:"d.m.y" }}</span>{% endif %}{% elif fl.zuerst == 'datum' %}<strong>📅 {{ e.faellig_am|date:"d.m.y" }}</strong>{% if e.faellig_km is not None %} <span class="leise">oder ⏲️ {{ e.faellig_km|km }}{% if fl.km_rest is not None %} ({{ fl.km_rest|vorzeichen }} km){% endif %}</span>{% endif %}{% endif %}</div>{% endwith %}
   <div class="leise klein">{{ f }}{% if f.halter %} · {{ f.halter.vorname }}{% endif %}</div>
 </a>
 {% endfor %}

@@ -62,13 +62,20 @@ def statistik(request, fahrzeug_id):
             if fj or ab:
                 je_jahr.append({"jahr": j, "v": v, "menge": menge, "kosten": kosten,
                                 "preis": kosten / menge if menge else None, "anzahl": len(fj)})
+        # Gesamtsumme über alle Jahre
+        summe = None
+        if jahr is None and je_jahr:
+            menge = sum((z["menge"] for z in je_jahr), Decimal(0))
+            kosten = sum((z["kosten"] for z in je_jahr), Decimal(0))
+            summe = {"v": vb.verbrauch(alle), "menge": menge, "kosten": kosten,
+                     "preis": kosten / menge if menge else None}
         kraftstoffe.append({
             "k": k, "diagramm": diagramm, "preis_diagramm": preis_diagramm, "reichweite": reichweite,
             "min": min(werte) if werte else None, "max": max(werte) if werte else None,
             "preis_min": min((p for _, p in preise), default=None), "preis_max": max((p for _, p in preise), default=None),
             "preis_schnitt": k.kosten_gesamt / k.menge_gesamt if k.menge_gesamt else None,
             "weiteste": max(k.abschnitte, key=lambda a: a.km, default=None),
-            "je_jahr": je_jahr,
+            "je_jahr": je_jahr, "summe": summe,
         })
 
     # Fahrleistung (Jahresgrenzen interpoliert) und Tachostand

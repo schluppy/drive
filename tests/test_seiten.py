@@ -46,6 +46,24 @@ class SeitenTest(TestCase):
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
 
+    def test_statistik_gesamtsumme_und_bereiche(self):
+        antwort = self.client.get(reverse("auswertung:statistik", args=[self.f.pk]))
+        diesel = antwort.context["kraftstoffe"][0]
+        self.assertEqual(diesel["summe"]["menge"], sum(z["menge"] for z in diesel["je_jahr"]))
+        self.assertContains(antwort, 'href="#fahrleistung"')
+        self.assertContains(antwort, 'id="fahrleistung"')
+        self.assertContains(antwort, 'href="#top"')
+        jahr = self.client.get(reverse("auswertung:statistik", args=[self.f.pk]) + "?jahr=2026")
+        self.assertIsNone(jahr.context["kraftstoffe"][0]["summe"])
+
+    def test_plus_nur_im_logbuch(self):
+        f = self.f.pk
+        self.assertContains(self.client.get(reverse("logbuch:liste", args=[f])), 'class="plus"')
+        for url in (reverse("auswertung:statistik", args=[f]), reverse("fahrzeuge:uebersicht", args=[f]),
+                    reverse("logbuch:erinnerungen", args=[f])):
+            with self.subTest(url=url):
+                self.assertNotContains(self.client.get(url), 'class="plus"')
+
     def test_vergleich_rangfolge(self):
         antwort = self.client.get(reverse("auswertung:vergleich"))
         zeilen = antwort.context["zeilen"]

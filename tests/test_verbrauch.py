@@ -104,6 +104,20 @@ class VerbrauchTest(TestCase):
         self.assertEqual(fl.km_rest, 1000)
         self.assertEqual(fl.datum_geschaetzt, date(2026, 1, 21))
 
+    def test_faelligkeit_was_zuerst_kommt(self):
+        kat = Kategorie.objects.get(familie=self.familie, name="Inspektion")
+        heute = date(2026, 1, 1)
+        # 1000 km bei 50 km/Tag = 20 Tage – vor dem Datum in 31 Tagen
+        e = Erinnerung(fahrzeug=self.f, kategorie=kat, faellig_am=date(2026, 2, 1), faellig_km=11000)
+        fl = vb.faelligkeit(e, 10000, Decimal(50), heute=heute)
+        self.assertEqual((fl.zuerst, fl.tage_bis), ("km", 20))
+        # 5000 km = 100 Tage – das Datum kommt zuerst
+        fl = vb.faelligkeit(e, 6000, Decimal(50), heute=heute)
+        self.assertEqual((fl.zuerst, fl.tage_bis), ("datum", 31))
+        # ohne Fahrleistung: km nur, wenn schon überschritten
+        self.assertEqual(vb.faelligkeit(e, 6000, None, heute=heute).zuerst, "datum")
+        self.assertEqual(vb.faelligkeit(e, 12000, None, heute=heute).zuerst, "km")
+
     def test_naechste_erinnerung(self):
         kat = Kategorie.objects.get(familie=self.familie, name="Inspektion")
         e = Erinnerung(fahrzeug=self.f, kategorie=kat, faellig_am=date(2026, 2, 1), faellig_km=90000,

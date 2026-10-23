@@ -305,14 +305,24 @@ class Faelligkeit:
     tage_rest: int | None = None
     km_geschaetzt: Decimal | None = None
     datum_geschaetzt: date | None = None
+    tage_km: int | None = None  # Tage bis zum Tachostand, geschätzt aus der Fahrleistung
 
     @property
     def tage_bis(self):
         """Tage bis zur Fälligkeit, ob nach Datum oder geschätzt nach km – das Frühere."""
-        werte = [t for t in (self.tage_rest,
-                             (self.datum_geschaetzt - date.today()).days if self.datum_geschaetzt else None)
-                 if t is not None]
+        werte = [t for t in (self.tage_rest, self.tage_km) if t is not None]
         return min(werte) if werte else None
+
+    @property
+    def zuerst(self):
+        """'km' oder 'datum' – was zuerst eintritt (bei beidem gesetzt)."""
+        if self.km_rest is None:
+            return "datum" if self.tage_rest is not None else None
+        if self.tage_rest is None:
+            return "km"
+        if self.tage_km is None:
+            return "km" if self.km_rest < 0 else "datum"
+        return "km" if self.tage_km < self.tage_rest else "datum"
 
     @property
     def ueberfaellig(self):
@@ -324,8 +334,10 @@ def faelligkeit(erinnerung, tachostand, kmpt, heute=None):
     f = Faelligkeit(erinnerung)
     if erinnerung.faellig_km is not None and tachostand is not None:
         f.km_rest = erinnerung.faellig_km - tachostand
-        if kmpt and f.km_rest >= 0 and not erinnerung.faellig_am:
-            f.datum_geschaetzt = heute + timedelta(days=int(f.km_rest / kmpt))
+        if kmpt:
+            f.tage_km = int(f.km_rest / kmpt)
+            if f.km_rest >= 0 and not erinnerung.faellig_am:
+                f.datum_geschaetzt = heute + timedelta(days=f.tage_km)
     if erinnerung.faellig_am:
         f.tage_rest = (erinnerung.faellig_am - heute).days
         if kmpt and tachostand is not None and not erinnerung.faellig_km and f.tage_rest >= 0:

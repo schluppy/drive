@@ -18,15 +18,23 @@
   --schatten: 0 1px 2px rgba(0, 0, 0, .12), 0 1px 3px rgba(0, 0, 0, .06);
   --r: 10px;
   --mass: 46rem;
+  --auf-blau: #fff;
   color-scheme: light;
 }
+/* Dunkel: nach Systemeinstellung, außer jemand hat „Hell“ gewählt – oder ausdrücklich „Dunkel“ */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-thema="hell"]) {
     --blau: #8fcdff; --blau-hell: #17324a; --orange: #ffb067; --gruen: #8fd18f; --gruen-text: #9ed36a;
     --rot: #ff8a80; --rot-hell: #3d1f1d; --lila: #b9a6ff; --grau: #a3abb5; --linie: #353c44;
     --karte: #20262c; --flaeche: #181c20; --papier: #111417; --tinte: #e6e9ec; --kopf: #0b0e10;
-    --schatten: none; color-scheme: dark;
+    --schatten: none; --auf-blau: #00253d; color-scheme: dark;
   }
+}
+:root[data-thema="dunkel"] {
+  --blau: #8fcdff; --blau-hell: #17324a; --orange: #ffb067; --gruen: #8fd18f; --gruen-text: #9ed36a;
+  --rot: #ff8a80; --rot-hell: #3d1f1d; --lila: #b9a6ff; --grau: #a3abb5; --linie: #353c44;
+  --karte: #20262c; --flaeche: #181c20; --papier: #111417; --tinte: #e6e9ec; --kopf: #0b0e10;
+  --schatten: none; --auf-blau: #00253d; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -57,6 +65,7 @@ p { margin: 0 0 .8rem; }
 .kopf nav a, .kopf nav button { color: #dfe6ea; text-decoration: none; background: none; border: 0; font: inherit; cursor: pointer; padding: .2rem 0; border-bottom: 2px solid transparent; }
 .kopf nav a[aria-current="page"], .kopf nav a:hover { color: #fff; border-bottom-color: #8fcdff; }
 .kopf form { margin: 0; }
+.kopf nav .thema { font-size: 1.1rem; line-height: 1; padding: .2rem .1rem; }
 
 /* Reiter je Fahrzeug */
 .reiter { background: var(--kopf); position: sticky; top: 2.75rem; z-index: 19; }
@@ -113,6 +122,18 @@ a.karte.eintrag, .eintrag { display: grid; grid-template-columns: 2rem 1fr auto;
 .chips a { padding: .3rem .75rem; border: 1px solid var(--linie); border-radius: 8px; text-decoration: none; color: var(--tinte); font-size: .9rem; background: var(--flaeche); }
 .chips a[aria-current="true"] { background: var(--blau-hell); border-color: var(--blau); color: var(--tinte); }
 
+/* Statistik: Bereiche mit Sprungmarken */
+.sprungmarken { display: flex; gap: .4rem; flex-wrap: wrap; margin: 0 0 1.2rem; }
+.sprungmarken a { padding: .35rem .8rem; border-radius: 8px; background: var(--blau-hell); color: var(--tinte); text-decoration: none; font-size: .9rem; }
+.sprungmarken a:hover { outline: 2px solid var(--blau); }
+.bereich { background: var(--karte); border-top: 4px solid var(--akzent, var(--blau)); border-radius: var(--r); padding: .4rem .7rem .7rem; margin: 0 0 2rem; scroll-margin-top: 7rem; }
+.bereich-kopf { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.bereich-kopf h2 { margin: .5rem 0 .7rem; color: var(--akzent, var(--blau)); font-size: 1.3rem; }
+.bereich-kopf a { font-size: .85rem; white-space: nowrap; }
+.bereich > .karte:last-child { margin-bottom: 0; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
 /* Tabellen */
 .tabelle-rahmen { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: .9rem; }
@@ -168,8 +189,7 @@ fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
 legend { font-size: .85rem; color: var(--grau); margin-bottom: .3rem; padding: 0; }
 .abschnitt-titel { color: var(--blau); font-size: 1rem; margin: 1.2rem 0 .6rem; }
 
-.knopf { display: inline-block; background: var(--blau); color: #fff; border: 0; border-radius: 22px; padding: .65rem 1.3rem; font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
-@media (prefers-color-scheme: dark) { .knopf { color: #00253d; } }
+.knopf { display: inline-block; background: var(--blau); color: var(--auf-blau); border: 0; border-radius: 22px; padding: .65rem 1.3rem; font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
 .knopf.zweit { background: transparent; color: var(--blau); border: 1px solid var(--linie); }
 .knopf.gefahr { background: transparent; color: var(--rot); border: 1px solid var(--rot); }
 .knopf.klein { padding: .35rem .8rem; font-size: .88rem; }
@@ -184,8 +204,7 @@ legend { font-size: .85rem; color: var(--grau); margin-bottom: .3rem; padding: 0
 
 /* „+“ unten rechts mit Auswahl wie in DriveNote */
 .plus { position: fixed; right: max(1rem, calc((100vw - var(--mass)) / 2 + 1rem)); bottom: 1.2rem; z-index: 30; }
-.plus summary { list-style: none; width: 3.6rem; height: 3.6rem; border-radius: 16px; background: var(--blau); color: #fff; display: grid; place-items: center; font-size: 2rem; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,.3); margin-left: auto; }
-@media (prefers-color-scheme: dark) { .plus summary { color: #00253d; } }
+.plus summary { list-style: none; width: 3.6rem; height: 3.6rem; border-radius: 16px; background: var(--blau); color: var(--auf-blau); display: grid; place-items: center; font-size: 2rem; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,.3); margin-left: auto; }
 .plus summary::-webkit-details-marker { display: none; }
 .plus[open] summary { transform: rotate(45deg); }
 .plus .menue { position: absolute; right: 0; bottom: 4.4rem; background: var(--flaeche); border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,.25); padding: .4rem 0; min-width: 15rem; border: 1px solid var(--linie); }

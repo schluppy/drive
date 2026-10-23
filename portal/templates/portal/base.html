@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#263238">
   <title>{% block titel %}Drive{% endblock %} – Drive</title>
+  <script>
+    // Hell/Dunkel je Gerät merken; ohne Wahl gilt die Systemeinstellung. Vor dem CSS, damit nichts aufblitzt.
+    try { var t = localStorage.getItem("drive-thema"); if (t) document.documentElement.dataset.thema = t; } catch (e) {}
+  </script>
   <link rel="stylesheet" href="{% static 'portal/drive.css' %}">
   <link rel="icon" href="{% static 'portal/drive.svg' %}">
   <link rel="apple-touch-icon" href="{% static 'portal/drive-192.png' %}">
@@ -22,6 +26,7 @@
       <a href="{% url 'auswertung:vergleich' %}" {% if seite == 'vergleich' %}aria-current="page"{% endif %}>Vergleich</a>
       <a href="{% url 'portal:familie' %}" {% if seite == 'familie' or seite == 'profil' or app == 'importe' or seite == 'kategorien' or seite == 'orte' or seite == 'ort' %}aria-current="page"{% endif %}>Familie</a>
       {% endif %}
+      <button type="button" class="thema" id="thema" hidden>🌓</button>
       {% if user.is_authenticated %}
       {% if user.is_superuser %}<a href="{% url 'admin:index' %}" title="Verwaltung">⚙︎</a>{% endif %}
       <form method="post" action="{% url 'portal:abmelden' %}">{% csrf_token %}<button type="submit">Abmelden</button></form>
@@ -36,7 +41,7 @@
     <a href="{% url 'fahrzeuge:uebersicht' fahrzeug.pk %}" {% if tab == 'fahrzeug' %}aria-current="page"{% endif %}><span aria-hidden="true">🚗</span>Fahrzeug</a>
     <a href="{% url 'logbuch:liste' fahrzeug.pk %}" {% if tab == 'logbuch' %}aria-current="page"{% endif %}><span aria-hidden="true">📄</span>Logbuch</a>
     <a href="{% url 'auswertung:statistik' fahrzeug.pk %}" {% if tab == 'statistik' %}aria-current="page"{% endif %}><span aria-hidden="true">📈</span>Statistik</a>
-    <a href="{% url 'auswertung:kosten' fahrzeug.pk %}" {% if tab == 'kosten' %}aria-current="page"{% endif %}><span aria-hidden="true">🍩</span>Kosten</a>
+    <a href="{% url 'auswertung:kosten' fahrzeug.pk %}" {% if tab == 'kosten' %}aria-current="page"{% endif %}><span aria-hidden="true">💶</span>Kosten</a>
     <a href="{% url 'logbuch:erinnerungen' fahrzeug.pk %}" {% if tab == 'erinnerungen' %}aria-current="page"{% endif %}><span aria-hidden="true">📅</span>Termine</a>
   </div>
 </nav>
@@ -58,7 +63,7 @@
   {% endif %}
   {% block inhalt %}{% endblock %}
 </main>
-{% if fahrzeug and fahrzeug.pk and tab %}
+{% if fahrzeug and fahrzeug.pk and tab == 'logbuch' and request.resolver_match.url_name == 'liste' %}
 <details class="plus">
   <summary aria-label="Neu">+</summary>
   <div class="menue">
@@ -71,6 +76,27 @@
 </details>
 {% endif %}
 <footer class="fuss-seite"><a href="{% url 'portal:datenschutz' %}">Datenschutz</a>{% if user.is_authenticated %} · <a href="{% url 'portal:profil' %}">{{ user.name }}</a>{% endif %}</footer>
+<script>
+(function () {
+  var knopf = document.getElementById("thema"), wurzel = document.documentElement;
+  var stufen = {"": ["🌓", "Automatisch (wie das System)"], hell: ["☀️", "Hell"], dunkel: ["🌙", "Dunkel"]};
+  var folge = {"": "hell", hell: "dunkel", dunkel: ""};
+  function zeigen() {
+    var t = wurzel.dataset.thema || "", s = stufen[t] || stufen[""];
+    knopf.textContent = s[0];
+    knopf.title = "Darstellung: " + s[1] + " – tippen für " + stufen[folge[t] || "hell"][1];
+    knopf.setAttribute("aria-label", knopf.title);
+  }
+  knopf.addEventListener("click", function () {
+    var t = folge[wurzel.dataset.thema || ""] || "";
+    if (t) wurzel.dataset.thema = t; else delete wurzel.dataset.thema;
+    try { t ? localStorage.setItem("drive-thema", t) : localStorage.removeItem("drive-thema"); } catch (e) {}
+    zeigen();
+  });
+  knopf.hidden = false;
+  zeigen();
+})();
+</script>
 {% block skript %}{% endblock %}
 </body>
 </html>
