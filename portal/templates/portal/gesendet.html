@@ -1,0 +1,7 @@
+{% extends "portal/base.html" %}
+{% block titel %}Link unterwegs{% endblock %}
+{% block inhalt %}
+<h1>Schau in dein Postfach</h1>
+<p>Wenn die Adresse hinterlegt ist, ist jetzt eine E-Mail mit dem Anmeldelink unterwegs. Der Link gilt {{ minuten }} Minuten und funktioniert einmal.</p>
+<p class="leise">Keine E-Mail da? Im Spam-Ordner nachsehen oder <a href="{% url 'portal:anmelden' %}">einen neuen Link anfordern</a>.</p>
+{% endblock %}

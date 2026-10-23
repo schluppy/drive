@@ -1,0 +1,10 @@
+Hallo {{ person.vorname }},
+
+bei Drive steht bald etwas an:
+{% for f, fl in faellige %}
+– {{ fl.erinnerung.kategorie }}{% if fl.erinnerung.notiz %}: {{ fl.erinnerung.notiz }}{% endif %} ({{ f }}{% if f.kennzeichen %}, {{ f.kennzeichen }}{% endif %})
+  {% if fl.erinnerung.faellig_am %}fällig am {{ fl.erinnerung.faellig_am|date:"d.m.Y" }} ({{ fl.tage_rest|zeitraum }}){% endif %}{% if fl.erinnerung.faellig_am and fl.erinnerung.faellig_km %} oder {% endif %}{% if fl.erinnerung.faellig_km %}bei {{ fl.erinnerung.faellig_km|km }} ({{ fl.km_rest|vorzeichen }} km){% endif %}
+{% endfor %}
+Alle Termine: {{ basis_url }}/
+
+Erinnerungsmails abschalten: {{ basis_url }}/profil/

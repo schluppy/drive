@@ -1,0 +1,40 @@
+{% extends "portal/base.html" %}
+{% block titel %}{% if fahrzeug.pk %}{{ fahrzeug }} bearbeiten{% else %}Neues Fahrzeug{% endif %}{% endblock %}
+{% block inhalt %}
+<h1>{% if fahrzeug.pk %}{{ fahrzeug }} bearbeiten{% else %}Neues Fahrzeug{% endif %}</h1>
+<form method="post" enctype="multipart/form-data" class="formular">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<ul class="fehlerliste">{% for f in form.non_field_errors %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
+  {% with feld=form.art %}{% include "portal/feld.html" %}{% endwith %}
+  <div class="zeile2">{% with feld=form.hersteller %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.modell %}{% include "portal/feld.html" %}{% endwith %}</div>
+  {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
+  <div class="zeile2">{% with feld=form.kennzeichen %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.halter %}{% include "portal/feld.html" %}{% endwith %}</div>
+  <h3 class="abschnitt-titel">Kraftstoff</h3>
+  <div class="zeile2">{% with feld=form.kraftstoff %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.tankvolumen %}{% include "portal/feld.html" %}{% endwith %}</div>
+  <div class="zeile2">{% with feld=form.kraftstoff2 %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.tankvolumen2 %}{% include "portal/feld.html" %}{% endwith %}</div>
+  <h3 class="abschnitt-titel">Daten</h3>
+  <div class="zeile2">{% with feld=form.motorisierung %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.versicherung %}{% include "portal/feld.html" %}{% endwith %}</div>
+  {% with feld=form.fin %}{% include "portal/feld.html" %}{% endwith %}
+  <div class="zeile2">{% with feld=form.hergestellt_am %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.erstzulassung %}{% include "portal/feld.html" %}{% endwith %}</div>
+  <h3 class="abschnitt-titel">Kauf</h3>
+  <div class="zeile3">{% with feld=form.erwerb_datum %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.erwerb_km %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.erwerb_preis %}{% include "portal/feld.html" %}{% endwith %}</div>
+  <h3 class="abschnitt-titel">Verkauf</h3>
+  <div class="zeile3">{% with feld=form.verkauf_datum %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.verkauf_km %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.verkauf_preis %}{% include "portal/feld.html" %}{% endwith %}</div>
+  <h3 class="abschnitt-titel">Foto und Vergleich</h3>
+  {% with feld=form.foto %}{% include "portal/feld.html" %}{% endwith %}
+  {% with feld=form.im_vergleich %}{% include "portal/feld.html" %}{% endwith %}
+  <div class="knoepfe"><button class="knopf" type="submit">Speichern</button>
+  <a class="knopf zweit" href="{% if fahrzeug.pk %}{% url 'fahrzeuge:uebersicht' fahrzeug.pk %}{% else %}{% url 'portal:start' %}{% endif %}">Abbrechen</a></div>
+</form>
+{% if fahrzeug.pk %}
+<details class="karte weiss">
+  <summary>Fahrzeug löschen</summary>
+  <form method="post" action="{% url 'fahrzeuge:loeschen' fahrzeug.pk %}">
+    {% csrf_token %}
+    <p>Löscht das Fahrzeug mit allen {{ fahrzeug.eintraege.count }} Logbucheinträgen und Erinnerungen. Verkaufte Fahrzeuge besser behalten und nur das Verkaufsdatum eintragen.</p>
+    <div class="feld"><label for="bestaetigt">Zum Bestätigen „{{ fahrzeug }}“ eintragen</label><input id="bestaetigt" name="bestaetigt" autocomplete="off"></div>
+    <button class="knopf gefahr" type="submit">Endgültig löschen</button>
+  </form>
+</details>
+{% endif %}
+{% endblock %}

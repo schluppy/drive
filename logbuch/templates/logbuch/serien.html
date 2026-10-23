@@ -1,0 +1,12 @@
+{% extends "portal/base.html" %}
+{% block titel %}Serien {{ fahrzeug }}{% endblock %}
+{% block inhalt %}
+<div class="kopfzeile"><h1>Serien</h1><a class="knopf zweit klein" href="{% url 'logbuch:serie_neu' fahrzeug.pk %}">+ Serie</a></div>
+<p class="leise">Wiederkehrende Kosten wie Versicherung, Steuer oder Leasing. Fällige Termine bucht Drive jeden Morgen ins Logbuch.</p>
+{% for s in serien %}
+<a class="karte" href="{% url 'logbuch:serie' fahrzeug.pk s.pk %}" style="--kat:{{ s.kategorie.farbe }}"><span class="balken"></span>
+  <div class="leiste-icons"><span>{% kategorie_marke s.kategorie %} {{ s.kategorie }}{% if s.beschreibung %} – {{ s.beschreibung }}{% endif %}</span><span>{{ s.betrag|euro }}</span></div>
+  <div class="leise klein" style="padding-left:2.6rem">{{ s.get_intervall_monate_display }} ab {{ s.beginn|date:"d.m.Y" }}{% if s.ende %} bis {{ s.ende|date:"d.m.Y" }}{% endif %} · {{ s.gebucht }}× gebucht</div>
+</a>
+{% empty %}<p class="leise">Noch keine Serien.</p>{% endfor %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "portal/base.html" %}
+{% block titel %}DriveNote-Backup importieren{% endblock %}
+{% block inhalt %}
+<h1>DriveNote-Backup importieren</h1>
+<p>So kommt das Backup aus der App: in DriveNote in den Einstellungen ein Backup erstellen, dann die Datei (z. B. <code>Drivenote_Backup_13.10.26.zip</code>) per Teilen-Menü auf dem Handy speichern oder an dich selbst schicken.</p>
+<form method="post" enctype="multipart/form-data" class="karte weiss formular">
+  {% csrf_token %}
+  <div class="feld"><label for="backup">Backup-Datei (.zip)</label><input id="backup" name="backup" type="file" accept=".zip,application/zip" required></div>
+  <button class="knopf" type="submit">Hochladen und prüfen</button>
+</form>
+<p class="leise klein">Im nächsten Schritt siehst du die Fahrzeuge im Backup und wählst, ob sie neu angelegt oder einem vorhandenen Fahrzeug der Familie zugeordnet werden – etwa wenn zwei von euch dasselbe Auto in DriveNote führen. Einen Import kannst du später mit einem neueren Backup wiederholen: Bekanntes wird aktualisiert, nicht verdoppelt.</p>
+{% endblock %}

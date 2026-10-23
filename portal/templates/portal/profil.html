@@ -1,0 +1,11 @@
+{% extends "portal/base.html" %}
+{% block titel %}Profil{% endblock %}
+{% block inhalt %}
+<h1>Mein Profil</h1>
+<p class="leise">{{ user.email }}{% if user.familie %} · Familie {{ user.familie }}{% endif %}</p>
+<form method="post" class="formular">
+  {% csrf_token %}
+  {% include "portal/felder.html" %}
+  <button class="knopf" type="submit">Speichern</button>
+</form>
+{% endblock %}

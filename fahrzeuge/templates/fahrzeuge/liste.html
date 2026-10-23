@@ -1,0 +1,19 @@
+{% extends "portal/base.html" %}
+{% block titel %}Alle Fahrzeuge{% endblock %}
+{% block inhalt %}
+<div class="kopfzeile"><h1>Alle Fahrzeuge</h1><a class="knopf zweit klein" href="{% url 'fahrzeuge:neu' %}">+ Fahrzeug</a></div>
+<div class="tabelle-rahmen karte weiss">
+<table>
+  <thead><tr><th>Fahrzeug</th><th>Halter</th><th class="zahl">Tachostand</th><th class="zahl">Fahrleistung</th><th class="zahl">Verbrauch</th><th class="zahl">Kosten</th><th class="zahl">€/km</th></tr></thead>
+  <tbody>
+  {% for f, kz in zeilen %}
+  <tr><td><a href="{% url 'fahrzeuge:uebersicht' f.pk %}">{{ f }}</a>{% if f.verkauft %} <span class="leise">(verkauft)</span>{% endif %}<br><span class="leise klein">{{ f.kennzeichen }}</span></td>
+      <td>{{ f.halter.vorname|default:"–" }}</td>
+      <td class="zahl">{{ kz.tachostand|km }}</td><td class="zahl">{{ kz.fahrleistung|km }}</td>
+      <td class="zahl">{% with k=kz.kraftstoffe.0 %}{% if k and k.verbrauch.gesamt %}{{ k.verbrauch.gesamt|zahl:2 }} {{ k.einheit }}{% else %}–{% endif %}{% endwith %}</td>
+      <td class="zahl">{{ kz.kosten_gesamt|euro:0 }}</td><td class="zahl">{{ kz.kosten_je_km|zahl:2 }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

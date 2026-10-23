@@ -1,0 +1,13 @@
+{% extends "portal/base.html" %}
+{% block titel %}Erledigt{% endblock %}
+{% block inhalt %}
+<h1>{{ erinnerung }} erledigt</h1>
+<p class="leise">Für ausführliche Einträge (z. B. Werkstattrechnung mit Beschreibung) lieber einen <a href="{% url 'logbuch:neu' fahrzeug.pk 'kosten' %}?erinnerung={{ erinnerung.pk }}">Logbucheintrag anlegen</a> – auch der erledigt die Erinnerung.</p>
+<form method="post" class="formular">
+  {% csrf_token %}
+  {% include "portal/felder.html" %}
+  {% if erinnerung.wiederkehrend %}<p class="hinweis">Die nächste Erinnerung wird eingetragen{% if erinnerung.wiederholen_monate %} ({{ erinnerung.wiederholen_monate }} Monate nach dem bisherigen Termin){% endif %}{% if erinnerung.wiederholen_km %} ({{ erinnerung.wiederholen_km|km }} später){% endif %}.</p>{% endif %}
+  <div class="knoepfe"><button class="knopf" type="submit">Erledigt</button>
+  <a class="knopf zweit" href="{% url 'logbuch:erinnerungen' fahrzeug.pk %}">Abbrechen</a></div>
+</form>
+{% endblock %}

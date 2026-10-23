@@ -1,0 +1,12 @@
+{% extends "portal/base.html" %}
+{% block titel %}Kategorie{% endblock %}
+{% block inhalt %}
+<h1>{% if kategorie.pk %}{{ kategorie }}{% else %}Neue Kategorie{% endif %}</h1>
+<form method="post" class="formular">
+  {% csrf_token %}
+  {% include "portal/felder.html" %}
+  <div class="knoepfe"><button class="knopf" type="submit">Speichern</button>
+  <a class="knopf zweit" href="{% url 'logbuch:kategorien' %}">Abbrechen</a>
+  {% if kategorie.pk and not kategorie.geschuetzt %}<button class="knopf gefahr klein" name="loeschen" value="1" type="submit" formnovalidate onclick="return confirm('Kategorie löschen?')">Löschen</button>{% endif %}</div>
+</form>
+{% endblock %}

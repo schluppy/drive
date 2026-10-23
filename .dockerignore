@@ -1,0 +1,9 @@
+.git
+.env
+msmtprc
+msmtp.env
+db.sqlite3
+staticfiles
+media
+import
+**/__pycache__

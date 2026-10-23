@@ -1,0 +1,35 @@
+{% extends "portal/base.html" %}
+{% block titel %}Kosten {{ fahrzeug }}{% endblock %}
+{% block inhalt %}
+<h1>Kosten{% if jahr %} {{ jahr }}{% endif %}</h1>
+{% include "auswertung/jahre.html" %}
+<section class="karte weiss">
+  <h2 style="margin-top:0">Kostenverteilung</h2>
+  {{ ring }}
+  <div class="tabelle-rahmen"><table>
+    <thead><tr><th>Kategorie</th><th class="zahl">Anzahl</th><th class="zahl">%</th><th class="zahl">Kosten</th></tr></thead>
+    <tbody>{% for k, n, s in nach_kat %}<tr><td><span class="punkt" style="--kat:{{ k.farbe }}"></span>{{ k }}</td><td class="zahl">{{ n }}</td><td class="zahl">{{ s|anteil:summe|zahl:1 }}</td><td class="zahl">{{ s|euro }}</td></tr>{% endfor %}</tbody>
+    <tfoot><tr><td></td><td class="zahl">{{ nach_kat|summe_anzahl }}</td><td></td><td class="zahl">{{ summe|euro }}</td></tr></tfoot>
+  </table></div>
+</section>
+
+<section class="karte weiss">
+  <h2 style="margin-top:0">Kostenentwicklung</h2>
+  <div class="legende">{% for k, n, s in nach_kat %}<span style="--kat:{{ k.farbe }}">{{ k }}</span>{% endfor %}</div>
+  {{ entwicklung }}
+  <div class="tabelle-rahmen"><table>
+    <thead><tr><th>Jahr</th><th class="zahl">Kosten</th><th class="zahl">pro Monat</th><th class="zahl">km</th><th class="zahl">€/km</th></tr></thead>
+    <tbody>{% for z in je_jahr %}<tr><td>{% if not jahr %}<a href="?jahr={{ z.jahr }}">{{ z.jahr }}</a>{% else %}{{ z.jahr }}{% endif %}</td><td class="zahl">{{ z.summe|euro }}</td><td class="zahl">{{ z.monat|euro }}</td><td class="zahl">{{ z.km|zahl }}</td><td class="zahl">{{ z.je_km|zahl:3 }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+
+<section class="karte weiss">
+  <h2 style="margin-top:0">Kosten pro Kilometer (kumuliert)</h2>
+  {{ kumuliert }}
+  <div class="kennzahlen">
+    <div><div class="titel">Gesamt</div><div class="wert">{{ kz.kosten_je_km|zahl:3 }}</div><div class="einheit">€/km{% if jahr %} in {{ jahr }}{% endif %}</div></div>
+    {% for k in kz.kraftstoffe %}<div><div class="titel">{{ k.name }}</div><div class="wert">{{ k.kosten_je_km|zahl:3 }}</div><div class="einheit">€/km</div></div>{% endfor %}
+  </div>
+  {% if fahrzeug.erwerb_preis and not jahr %}<p class="leise klein" style="margin-top:.6rem">Ohne Kaufpreis ({{ fahrzeug.erwerb_preis|euro }}){% if fahrzeug.verkauf_preis %} und Verkaufserlös ({{ fahrzeug.verkauf_preis|euro }}){% endif %}.</p>{% endif %}
+</section>
+{% endblock %}

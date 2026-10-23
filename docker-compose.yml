@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    hostname: ${DRIVE_HOST:-drive.example.org}
+    user: "1000:1000"
+    restart: unless-stopped
+    env_file: .env
+    depends_on: [db]
+    volumes:
+      - media:/app/media
+      - ./msmtprc:/etc/msmtprc:ro   # nur das Konto „drive“; Eigentümer 1000:1000, chmod 600
+      - ./msmtp.env:/etc/msmtp-drive.env:ro   # MSMTP_PASSWORD=…; Eigentümer 1000:1000, chmod 600
+    ports:
+      - "127.0.0.1:8030:8000"       # nur lokal; von außen nur über den Reverse Proxy
+
+volumes:
+  pgdata:
+  media:

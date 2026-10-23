@@ -1,0 +1,10 @@
+{% extends "portal/base.html" %}
+{% block titel %}Willkommen{% endblock %}
+{% block inhalt %}
+<h1>Willkommen bei Drive, {{ user.vorname }}</h1>
+<p>Noch gibt es kein Fahrzeug in der Familie {{ user.familie }}. Zwei Wege zum Start:</p>
+<div class="fahrzeugkarten">
+  <a class="karte" href="{% url 'importe:hochladen' %}"><h3>📥 DriveNote-Backup importieren</h3><p class="leise">Fahrzeuge, Logbuch, Kategorien, Erinnerungen und Fotos aus der Android-App übernehmen.</p></a>
+  <a class="karte" href="{% url 'fahrzeuge:neu' %}"><h3>🚗 Fahrzeug anlegen</h3><p class="leise">Mit leerem Logbuch beginnen.</p></a>
+</div>
+{% endblock %}

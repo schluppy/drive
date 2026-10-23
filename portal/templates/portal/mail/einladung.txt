@@ -1,0 +1,14 @@
+Hallo {{ person.name }},
+
+{{ von.name }} lädt dich in die Familie „{{ familie }}“ bei Drive ein – dem gemeinsamen
+Fahrtenbuch für Tankfüllungen, Kosten und Termine (und wer am sparsamsten fährt).
+
+Mit diesem Link meldest du dich an, ganz ohne Passwort:
+
+{{ link }}
+
+Der Link gilt {{ tage }} Tage und funktioniert einmal. Später forderst du unter
+{{ basis_url }}/anmelden/ jederzeit einen neuen an.
+
+Wenn du die App DriveNote nutzt: Unter Familie → DriveNote-Backup importieren übernimmst
+du deine bisherigen Daten.

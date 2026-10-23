@@ -1,0 +1,20 @@
+{% extends "portal/base.html" %}
+{% block titel %}Datenschutz{% endblock %}
+{% block inhalt %}
+<h1>Datenschutz</h1>
+<p>Drive ist ein privat betriebenes Fahrtenbuch für Familien und Freunde{% if betreiber %}, betrieben von {{ betreiber }}{% endif %}.{% if kontakt %} Kontakt: <a href="mailto:{{ kontakt }}">{{ kontakt }}</a>.{% endif %}</p>
+<h2>Was gespeichert wird</h2>
+<ul>
+  <li>Name und E-Mail-Adresse jeder Person, Zeitpunkt der letzten Nutzung.</li>
+  <li>Fahrzeugdaten, Logbucheinträge, Erinnerungen und Fotos, die ihr selbst eintragt oder importiert.</li>
+  <li>Für die Anmeldelinks: ein Hash des Links, Zeitpunkt und IP-Adresse der Anforderung (gegen Missbrauch).</li>
+</ul>
+<h2>Wer es sieht</h2>
+<p>Alle Mitglieder einer Familie sehen alle Fahrzeuge und Einträge dieser Familie. Andere Familien sehen nichts davon, auch der Betreiber nicht über die Oberfläche. Es gibt keine Werbung, kein Tracking, keine externen Schriften oder Skripte.</p>
+<h2>Cookies</h2>
+<p>Nur ein Sitzungs-Cookie für die Anmeldung (90 Tage) und ein Cookie gegen gefälschte Formulare.</p>
+<h2>E-Mails</h2>
+<p>Drive schickt Anmeldelinks, Einladungen und – abschaltbar im Profil – Erinnerungen an fällige Termine.</p>
+<h2>Löschen</h2>
+<p>Fahrzeuge löscht ihr selbst samt Logbuch. Für das Löschen eines Zugangs genügt eine Nachricht an den Betreiber.</p>
+{% endblock %}

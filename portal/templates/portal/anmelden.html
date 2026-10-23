@@ -1,0 +1,16 @@
+{% extends "portal/base.html" %}
+{% block titel %}Anmelden{% endblock %}
+{% block inhalt %}
+<h1>Anmelden</h1>
+<p>Gib deine E-Mail-Adresse ein. Du bekommst einen Link, mit dem du dich ohne Passwort anmeldest.</p>
+<form method="post" class="formular karte weiss">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <div class="feld">
+    <label for="email">E-Mail-Adresse</label>
+    <input id="email" name="email" type="email" autocomplete="email" required autofocus>
+  </div>
+  <button class="knopf" type="submit">Anmeldelink senden</button>
+</form>
+<p class="leise klein">Drive ist ein Fahrtenbuch für Familien und Freunde: Tankfüllungen, Kosten und Termine je Fahrzeug – und wer am sparsamsten fährt. Zugang bekommst du über eine Einladung.</p>
+{% endblock %}

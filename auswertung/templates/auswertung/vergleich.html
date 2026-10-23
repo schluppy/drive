@@ -1,0 +1,66 @@
+{% extends "portal/base.html" %}
+{% block titel %}Vergleich{% endblock %}
+{% block inhalt %}
+<h1>Familienvergleich{% if jahr %} {{ jahr }}{% endif %}</h1>
+{% include "auswertung/jahre.html" %}
+{% if not zeilen %}
+<p class="leise">Sobald Fahrzeuge mindestens zwei volle Tankfüllungen haben, steht hier, wer am sparsamsten fährt.</p>
+{% else %}
+<div class="beste">
+  {% with z=beste.sparsam %}{% if z %}<div class="karte"><span class="pokal">🏆</span><div class="leise klein">Sparsamstes Fahrzeug</div><div class="wert">{{ z.v.gesamt|zahl:2 }} l/100km</div><div>{{ z.fahrzeug.halter.vorname }} · {{ z.fahrzeug }}</div></div>{% endif %}{% endwith %}
+  {% with z=beste.weiteste %}{% if z %}<div class="karte"><span class="pokal">🛣️</span><div class="leise klein">Weiteste Tankfüllung</div><div class="wert">{{ z.weiteste.km|zahl }} km</div><div>{{ z.weiteste.person.vorname|default:z.fahrzeug.halter.vorname }} · {{ z.fahrzeug }}</div><div class="leise klein">{{ z.weiteste.datum|date:"d.m.Y" }} · {{ z.weiteste.menge|zahl:2 }} l · {{ z.weiteste.verbrauch|zahl:2 }} l/100km</div></div>{% endif %}{% endwith %}
+  {% with z=beste.beste_fuellung %}{% if z %}<div class="karte"><span class="pokal">🍃</span><div class="leise klein">Sparsamste Tankfüllung</div><div class="wert">{{ z.bester.verbrauch|zahl:2 }} l/100km</div><div>{{ z.bester.person.vorname|default:z.fahrzeug.halter.vorname }} · {{ z.fahrzeug }}</div><div class="leise klein">{{ z.bester.datum|date:"d.m.Y" }} · {{ z.bester.km|zahl }} km</div></div>{% endif %}{% endwith %}
+  {% with z=beste.guenstig %}{% if z %}<div class="karte"><span class="pokal">💶</span><div class="leise klein">Günstigster Sprit im Schnitt</div><div class="wert">{{ z.preis|zahl:3 }} €/l</div><div>{{ z.fahrzeug.halter.vorname }} · {{ z.fahrzeug }} ({{ z.kraftstoff }})</div></div>{% endif %}{% endwith %}
+  {% with z=beste.vielfahrer %}{% if z %}<div class="karte"><span class="pokal">🚀</span><div class="leise klein">Meiste Kilometer</div><div class="wert">{{ z.fahrleistung|zahl }} km</div><div>{{ z.fahrzeug.halter.vorname }} · {{ z.fahrzeug }}</div></div>{% endif %}{% endwith %}
+</div>
+
+<h2>Fahrzeuge</h2>
+<div class="karte weiss tabelle-rahmen">
+<table>
+  <thead><tr><th class="rang">#</th><th>Fahrzeug</th><th class="zahl">Ø Verbrauch</th><th class="zahl">Beste</th><th class="zahl">Weiteste</th><th class="zahl">Ø km/Tank</th><th class="zahl">€/{{ "l" }}</th><th class="zahl">km</th><th class="zahl">€/km</th></tr></thead>
+  <tbody>
+  {% for z in zeilen %}
+  <tr><td class="rang">{{ forloop.counter }}</td>
+      <td><span class="punkt" style="--kat:{{ z.farbe }}"></span><a href="{% url 'auswertung:statistik' z.fahrzeug.pk %}{% if jahr %}?jahr={{ jahr }}{% endif %}">{{ z.fahrzeug }}</a><br><span class="leise klein">{{ z.fahrzeug.halter.vorname|default:"–" }} · {{ z.kraftstoff }}{% if z.fahrzeug.verkauft %} · verkauft{% endif %}</span></td>
+      <td class="zahl"><b>{{ z.v.gesamt|zahl:2 }}</b> {{ z.einheit }}</td>
+      <td class="zahl">{{ z.bester.verbrauch|zahl:2 }}</td>
+      <td class="zahl">{{ z.weiteste.km|zahl }} km</td>
+      <td class="zahl">{{ z.v.km_je_fuellung|zahl }}</td>
+      <td class="zahl">{{ z.preis|zahl:3 }}</td>
+      <td class="zahl">{{ z.fahrleistung|zahl }}</td>
+      <td class="zahl">{{ z.kosten_je_km|zahl:2 }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="leise klein">Verbrauch und Strecken von voller zu voller Tankfüllung, nur Hauptkraftstoff. „€/km“ enthält alle Kosten des Fahrzeugs ohne Kaufpreis.</p>
+
+{% with d=diagramm.0 s=diagramm.1 %}{% if s %}
+<h2>Verlauf</h2>
+<section class="karte weiss">
+  <div class="legende">{% for x in s %}<span style="--kat:{{ x.farbe }}">{{ x.name }}</span>{% endfor %}</div>
+  {{ d }}
+  <p class="leise klein">{% if jahr %}Monatsmittel{% else %}Quartalsmittel{% endif %}, nach Strecke gewichtet.</p>
+</section>
+{% endif %}{% endwith %}
+
+{% if personen %}
+<h2>Wer fährt am sparsamsten?</h2>
+<p class="leise klein">Jede Tankfüllung zählt für die Person, die sie eingetragen hat – so lassen sich auch gemeinsam genutzte Autos vergleichen.</p>
+<div class="karte weiss tabelle-rahmen">
+<table>
+  <thead><tr><th class="rang">#</th><th>Person</th><th class="zahl">Ø Verbrauch</th><th class="zahl">Tankfüllungen</th><th class="zahl">km</th><th class="zahl">Weiteste</th><th class="zahl">Beste</th></tr></thead>
+  <tbody>
+  {% for p in personen %}
+  <tr><td class="rang">{{ forloop.counter }}</td>
+      <td>{% if p.person %}<span class="punkt" style="--kat:{{ p.person.diagrammfarbe }}"></span>{{ p.person.name }}{% else %}<span class="leise">unbekannt</span>{% endif %}<br><span class="leise klein">{% for f in p.fahrzeuge %}{{ f }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></td>
+      <td class="zahl"><b>{{ p.verbrauch|zahl:2 }}</b> {{ p.einheit }}</td>
+      <td class="zahl">{{ p.anzahl }}</td><td class="zahl">{{ p.km|zahl }}</td>
+      <td class="zahl">{{ p.weiteste.km|zahl }} km</td><td class="zahl">{{ p.bester.verbrauch|zahl:2 }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

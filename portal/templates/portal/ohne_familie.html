@@ -1,0 +1,6 @@
+{% extends "portal/base.html" %}
+{% block titel %}Keine Familie{% endblock %}
+{% block inhalt %}
+<h1>Noch keiner Familie zugeordnet</h1>
+<p>Dein Zugang gehört noch zu keiner Familie. Bitte jemanden aus deiner Familie, dich unter „Familie“ einzuladen{% if user.is_superuser %}, oder lege in der <a href="{% url 'admin:index' %}">Verwaltung</a> eine Familie an und ordne dich ihr zu{% endif %}.</p>
+{% endblock %}

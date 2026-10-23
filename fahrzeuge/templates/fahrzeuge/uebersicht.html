@@ -1,0 +1,85 @@
+{% extends "portal/base.html" %}
+{% block titel %}{{ fahrzeug }}{% endblock %}
+{% block inhalt %}
+<div class="held">
+  {% if fahrzeug.foto %}<img class="foto" src="{% url 'fahrzeuge:foto' fahrzeug.pk %}" alt="Foto {{ fahrzeug }}">{% else %}<div class="foto foto-leer" aria-hidden="true">{% if fahrzeug.ist_anhaenger %}🚐{% else %}🚗{% endif %}</div>{% endif %}
+  <div class="karte">
+    <div class="kopfzeile"><h1>{{ fahrzeug }}</h1><a class="klein" href="{% url 'fahrzeuge:bearbeiten' fahrzeug.pk %}">Bearbeiten</a></div>
+    <div class="kennzahlen">
+      <div><div class="titel">Tachostand</div><div class="wert">{{ kz.tachostand|zahl }}</div><div class="einheit">km</div></div>
+      <div><div class="titel">Fahrleistung</div><div class="wert">{{ kz.fahrleistung|zahl }}</div><div class="einheit">km</div></div>
+    </div>
+  </div>
+</div>
+
+{% for k in kz.kraftstoffe %}
+<div class="karte">
+  <h3>Kraftstoffverbrauch: {{ k.name }}</h3>
+  {% if k.verbrauch.anzahl %}
+  <div class="kennzahlen">
+    <div><div class="titel">Gesamt</div><div class="wert">{{ k.verbrauch.gesamt|zahl:3 }}</div><div class="einheit">{{ k.einheit }}/100km</div></div>
+    <div><div class="titel">Aktuell</div><div class="wert trend-{{ k.verbrauch.trend }}">{{ k.verbrauch.aktuell|zahl:3 }}</div><div class="einheit">{{ k.einheit }}/100km</div></div>
+    <div><div class="titel">BC</div><div class="wert">{% if k.verbrauch.bc %}{{ k.verbrauch.bc|zahl:3 }}{% else %}- - -{% endif %}</div><div class="einheit">{{ k.einheit }}/100km</div></div>
+  </div>
+  {% else %}<p class="leise">Ab der zweiten vollen Tankfüllung steht hier der Verbrauch.</p>{% endif %}
+</div>
+{% endfor %}
+
+{% if kz.kraftstoffe %}
+<div class="karte">
+  <h3>Kosten pro Kilometer</h3>
+  <div class="kennzahlen">
+    <div><div class="titel">Gesamt</div><div class="wert">{{ kz.kosten_je_km|zahl:2 }}</div><div class="einheit">€/km</div></div>
+    {% for k in kz.kraftstoffe %}<div><div class="titel">{{ k.name }}</div><div class="wert">{{ k.kosten_je_km|zahl:2 }}</div><div class="einheit">€/km</div></div>{% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="karte">
+  <div class="kennzahlen">
+    <div><div class="titel">Fahrten</div><div class="wert">{{ fahrten }}</div><div class="einheit">im Logbuch</div></div>
+    <div><div class="titel">Strecke</div><div class="wert">{{ fahrten_km|zahl }}</div><div class="einheit">km gezogen</div></div>
+    <div><div class="titel">Kosten</div><div class="wert">{{ kz.kosten_gesamt|zahl }}</div><div class="einheit">€</div></div>
+  </div>
+</div>
+{% endif %}
+
+{% if naechste %}
+<h2 class="leise" style="color:inherit">Nächste Erinnerung</h2>
+{% include "logbuch/erinnerung_karte.html" with fl=naechste tachostand=kz.tachostand %}
+{% endif %}
+
+<h2>Fahrzeugdaten</h2>
+<dl class="daten">
+  {% if fahrzeug.beschreibung %}<div><dt>Beschreibung</dt><dd>{{ fahrzeug.beschreibung }}</dd></div>{% endif %}
+  {% if fahrzeug.halter %}<div><dt>Halter / Hauptfahrer</dt><dd>{{ fahrzeug.halter.name }}</dd></div>{% endif %}
+  {% if fahrzeug.kennzeichen %}<div><dt>Kennzeichen</dt><dd>{{ fahrzeug.kennzeichen }}</dd></div>{% endif %}
+  {% if fahrzeug.motorisierung %}<div><dt>Motorisierung</dt><dd>{{ fahrzeug.motorisierung }}</dd></div>{% endif %}
+  {% if fahrzeug.versicherung %}<div><dt>Versicherung</dt><dd>{{ fahrzeug.versicherung }}</dd></div>{% endif %}
+  {% if fahrzeug.fin %}<div><dt>FIN</dt><dd>{{ fahrzeug.fin }}</dd></div>{% endif %}
+  {% if fahrzeug.kraftstoff %}<div><dt>Kraftstoff</dt><dd>{{ fahrzeug.get_kraftstoff_display }}{% if fahrzeug.tankvolumen %} · {{ fahrzeug.tankvolumen|zahl }} {{ fahrzeug.einheit }}{% endif %}{% if fahrzeug.kraftstoff2 %}<br>{{ fahrzeug.get_kraftstoff2_display }}{% if fahrzeug.tankvolumen2 %} · {{ fahrzeug.tankvolumen2|zahl }} {{ fahrzeug.einheit2 }}{% endif %}{% endif %}</dd></div>{% endif %}
+  {% if fahrzeug.hergestellt_am %}<div><dt>Hergestellt am</dt><dd>{{ fahrzeug.hergestellt_am|date:"d.m.y" }}</dd></div><div><dt>Fahrzeugalter</dt><dd>{{ fahrzeug.hergestellt_am|alter }}</dd></div>{% endif %}
+  {% if fahrzeug.erstzulassung %}<div><dt>Erstzulassung</dt><dd>{{ fahrzeug.erstzulassung|date:"d.m.y" }}</dd></div>{% endif %}
+</dl>
+{% if fahrzeug.erwerb_datum or fahrzeug.erwerb_preis %}
+<h2>Fahrzeugerwerb</h2>
+<dl class="daten">
+  <div><dt>Datum</dt><dd>{{ fahrzeug.erwerb_datum|date:"d.m.y"|default:"–" }}</dd></div>
+  <div><dt>Preis</dt><dd>{{ fahrzeug.erwerb_preis|euro }}</dd></div>
+  <div><dt>Tachostand</dt><dd>{{ fahrzeug.erwerb_km|km }}</dd></div>
+</dl>
+<h2>Fahrzeugbesitz</h2>
+<dl class="daten">
+  <div><dt>{% if fahrzeug.verkauft %}Besessen{% else %}Im Besitz{% endif %}</dt><dd>{% if fahrzeug.erwerb_datum %}{{ fahrzeug.erwerb_datum|alter:fahrzeug.verkauf_datum }}{% else %}–{% endif %}</dd></div>
+  <div><dt>Fahrleistung</dt><dd>{{ kz.fahrleistung|km }}</dd></div>
+</dl>
+{% endif %}
+{% if fahrzeug.verkauft %}
+<h2>Verkauf</h2>
+<dl class="daten">
+  <div><dt>Datum</dt><dd>{{ fahrzeug.verkauf_datum|date:"d.m.y" }}</dd></div>
+  <div><dt>Preis</dt><dd>{{ fahrzeug.verkauf_preis|euro }}</dd></div>
+  <div><dt>Tachostand</dt><dd>{{ fahrzeug.verkauf_km|km }}</dd></div>
+  {% if fahrzeug.erwerb_preis and fahrzeug.verkauf_preis %}<div><dt>Wertverlust</dt><dd>{{ fahrzeug.erwerb_preis|sub:fahrzeug.verkauf_preis|euro }}</dd></div>{% endif %}
+</dl>
+{% endif %}
+{% endblock %}

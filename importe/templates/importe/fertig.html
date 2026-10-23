@@ -1,0 +1,18 @@
+{% extends "portal/base.html" %}
+{% block titel %}Import fertig{% endblock %}
+{% block inhalt %}
+<h1>Import fertig</h1>
+<div class="karte weiss">
+<dl class="daten">
+  <div><dt>Fahrzeuge neu</dt><dd>{{ bericht.fahrzeuge_neu|length }}{% if bericht.fahrzeuge_neu %}<br><span class="klein">{{ bericht.fahrzeuge_neu|join:", " }}</span>{% endif %}</dd></div>
+  <div><dt>Fahrzeuge ergänzt</dt><dd>{{ bericht.fahrzeuge_zugeordnet|length }}{% if bericht.fahrzeuge_zugeordnet %}<br><span class="klein">{{ bericht.fahrzeuge_zugeordnet|join:", " }}</span>{% endif %}</dd></div>
+  <div><dt>Logbucheinträge neu</dt><dd>{{ bericht.eintraege_neu }}</dd></div>
+  <div><dt>aktualisiert / doppelt</dt><dd>{{ bericht.eintraege_aktualisiert }} / {{ bericht.eintraege_doppelt }}</dd></div>
+  <div><dt>Erinnerungen neu</dt><dd>{{ bericht.erinnerungen_neu }}</dd></div>
+  <div><dt>Erinnerungen aktualisiert</dt><dd>{{ bericht.erinnerungen_aktualisiert }}</dd></div>
+  {% if bericht.kategorien_neu %}<div><dt>Kategorien neu</dt><dd class="klein">{{ bericht.kategorien_neu|join:", " }}</dd></div>{% endif %}
+</dl>
+</div>
+{% for h in bericht.hinweise %}<p class="hinweis">{{ h }}</p>{% endfor %}
+<div class="knoepfe"><a class="knopf" href="{% url 'portal:start' %}">Zu den Fahrzeugen</a><a class="knopf zweit" href="{% url 'auswertung:vergleich' %}">Zum Vergleich</a></div>
+{% endblock %}

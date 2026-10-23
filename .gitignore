@@ -1,0 +1,13 @@
+.env
+msmtprc
+msmtp.env
+db.sqlite3
+media/
+staticfiles/
+__pycache__/
+erinnerungen.log
+
+# Private Daten einer Installation – bleiben nur auf dem Server
+import/
+BETRIEB-LOKAL.md
+tests/test_backup_privat.py

@@ -1,0 +1,61 @@
+{% extends "portal/base.html" %}
+{% block titel %}Statistik {{ fahrzeug }}{% endblock %}
+{% block inhalt %}
+<h1>Statistik{% if jahr %} {{ jahr }}{% endif %}</h1>
+{% include "auswertung/jahre.html" %}
+{% for s in kraftstoffe %}{% with k=s.k v=s.k.verbrauch %}
+<section class="karte weiss">
+  <h2 style="margin-top:0">Kraftstoffverbrauch: {{ k.name }}</h2>
+  <div class="legende"><span style="--kat:var(--blau)">Verbrauch je Tankfüllung</span><span class="gestrichelt" style="--kat:var(--orange)">Bordcomputer</span></div>
+  {{ s.diagramm }}
+  <div class="kennzahlen">
+    <div><div class="titel">Minimum</div><div class="wert">{{ s.min|zahl:2 }}</div><div class="einheit">{{ k.einheit }}/100km</div></div>
+    <div><div class="titel">Durchschnitt</div><div class="wert">{{ v.gesamt|zahl:2 }}</div><div class="einheit">{{ k.einheit }}/100km</div></div>
+    <div><div class="titel">Maximum</div><div class="wert">{{ s.max|zahl:2 }}</div><div class="einheit">{{ k.einheit }}/100km</div></div>
+  </div>
+  {% if s.je_jahr %}
+  <div class="tabelle-rahmen" style="margin-top:1rem"><table>
+    <thead><tr><th>Jahr</th><th class="zahl">Ø {{ k.einheit }}/100km</th><th class="zahl">BC</th><th class="zahl">km</th><th class="zahl">{{ k.einheit }}</th><th class="zahl">Kosten</th><th class="zahl">€/{{ k.einheit }}</th></tr></thead>
+    <tbody>{% for z in s.je_jahr %}<tr><td><a href="?jahr={{ z.jahr }}">{{ z.jahr }}</a></td><td class="zahl">{{ z.v.gesamt|zahl:2 }}</td><td class="zahl">{{ z.v.bc|zahl:2 }}</td><td class="zahl">{{ z.v.km|zahl }}</td><td class="zahl">{{ z.menge|zahl:1 }}</td><td class="zahl">{{ z.kosten|euro:0 }}</td><td class="zahl">{{ z.preis|zahl:3 }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% endif %}
+</section>
+
+<section class="karte weiss">
+  <h2 style="margin-top:0">Strecke je Tankfüllung ({{ k.name }})</h2>
+  {{ s.reichweite }}
+  <div class="kennzahlen">
+    <div><div class="titel">Tankfüllungen</div><div class="wert">{{ v.anzahl }}</div><div class="einheit">voll bis voll</div></div>
+    <div><div class="titel">Ø Strecke</div><div class="wert">{{ v.km_je_fuellung|zahl }}</div><div class="einheit">km</div></div>
+    <div><div class="titel">Weiteste</div><div class="wert">{{ s.weiteste.km|zahl }}</div><div class="einheit">km{% if s.weiteste %} · {{ s.weiteste.datum|date:"d.m.y" }}{% endif %}</div></div>
+  </div>
+</section>
+
+<section class="karte weiss">
+  <h2 style="margin-top:0">Preis je {{ k.einheit }} ({{ k.name }})</h2>
+  {{ s.preis_diagramm }}
+  <div class="kennzahlen">
+    <div><div class="titel">Minimum</div><div class="wert">{{ s.preis_min|zahl:3 }}</div><div class="einheit">€/{{ k.einheit }}</div></div>
+    <div><div class="titel">Durchschnitt</div><div class="wert">{{ s.preis_schnitt|zahl:3 }}</div><div class="einheit">€/{{ k.einheit }}</div></div>
+    <div><div class="titel">Maximum</div><div class="wert">{{ s.preis_max|zahl:3 }}</div><div class="einheit">€/{{ k.einheit }}</div></div>
+  </div>
+</section>
+{% endwith %}{% endfor %}
+
+<section class="karte weiss">
+  <h2 style="margin-top:0">Fahrleistung</h2>
+  {{ fahrleistung }}
+  {% if not jahr %}
+  <div class="tabelle-rahmen"><table>
+    <thead><tr><th>Jahr</th><th class="zahl">km</th><th class="zahl">pro Monat</th></tr></thead>
+    <tbody>{% for j, km in jahresfahrleistung %}<tr><td>{{ j }}</td><td class="zahl">{{ km|zahl }}</td><td class="zahl">{{ km|teile:12|zahl }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="leise klein">{{ jahr }}: {{ kz.fahrleistung|km }}</p>{% endif %}
+</section>
+
+<section class="karte weiss">
+  <h2 style="margin-top:0">Tachostand</h2>
+  {{ tacho }}
+  {% if kz.km_pro_tag %}<p class="leise klein">Zuletzt {{ kz.km_pro_tag|zahl:1 }} km am Tag (zwölf Monate) – rund {{ kz.km_pro_tag|mal:365|zahl }} km im Jahr.</p>{% endif %}
+</section>
+{% endblock %}

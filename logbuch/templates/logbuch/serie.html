@@ -1,0 +1,13 @@
+{% extends "portal/base.html" %}
+{% block titel %}Serie{% endblock %}
+{% block inhalt %}
+<h1>{% if serie.pk %}Serie bearbeiten{% else %}Neue Serie{% endif %}</h1>
+<form method="post" class="formular">
+  {% csrf_token %}
+  {% include "portal/felder.html" %}
+  <p class="leise klein">Termine bis heute werden beim Speichern sofort gebucht.</p>
+  <div class="knoepfe"><button class="knopf" type="submit">Speichern</button>
+  <a class="knopf zweit" href="{% url 'logbuch:serien' fahrzeug.pk %}">Abbrechen</a>
+  {% if serie.pk %}<button class="knopf gefahr klein" name="loeschen" value="1" type="submit" formnovalidate onclick="return confirm('Serie löschen? Gebuchte Einträge bleiben.')">Löschen</button>{% endif %}</div>
+</form>
+{% endblock %}

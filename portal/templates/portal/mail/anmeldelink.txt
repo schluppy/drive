@@ -1,0 +1,8 @@
+Hallo {{ person.name }},
+
+mit diesem Link meldest du dich bei Drive an:
+
+{{ link }}
+
+Der Link gilt {{ minuten }} Minuten und funktioniert nur einmal.
+Falls du keinen Link angefordert hast, kannst du diese Nachricht ignorieren.

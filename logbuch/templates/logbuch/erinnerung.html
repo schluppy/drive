@@ -1,0 +1,19 @@
+{% extends "portal/base.html" %}
+{% block titel %}Erinnerung{% endblock %}
+{% block inhalt %}
+<h1>{% if erinnerung.pk %}Erinnerung bearbeiten{% else %}Neue Erinnerung{% endif %}</h1>
+<form method="post" class="formular">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<ul class="fehlerliste">{% for f in form.non_field_errors %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
+  {% with feld=form.kategorie %}{% include "portal/feld.html" %}{% endwith %}
+  {% with feld=form.notiz %}{% include "portal/feld.html" %}{% endwith %}
+  <h3 class="abschnitt-titel">Fällig – was zuerst kommt</h3>
+  <div class="zeile2">{% with feld=form.faellig_am %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.faellig_km %}{% include "portal/feld.html" %}{% endwith %}</div>
+  <h3 class="abschnitt-titel">Wiederholen (leer = einmalig)</h3>
+  <div class="zeile2">{% with feld=form.wiederholen_monate %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.wiederholen_km %}{% include "portal/feld.html" %}{% endwith %}</div>
+  {% if erinnerung.erledigt_am %}<p class="hinweis">Erledigt am {{ erinnerung.erledigt_am|date:"d.m.Y" }}.</p>{% endif %}
+  <div class="knoepfe"><button class="knopf" type="submit">Speichern</button>
+  <a class="knopf zweit" href="{% url 'logbuch:erinnerungen' fahrzeug.pk %}">Abbrechen</a>
+  {% if erinnerung.pk %}<button class="knopf gefahr klein" name="loeschen" value="1" type="submit" formnovalidate onclick="return confirm('Erinnerung löschen?')">Löschen</button>{% endif %}</div>
+</form>
+{% endblock %}

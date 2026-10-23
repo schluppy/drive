@@ -1,0 +1,19 @@
+# /opt/drive/msmtprc – wird schreibgeschützt als /etc/msmtprc in den Container eingebunden.
+# Enthält nur das Konto „drive“; das Passwort steht in ./msmtp.env (Zeile MSMTP_PASSWORD=…).
+# Rechte: chmod 600 (Eigentümer: Benutzer mit UID 1000 wie der Container).
+#   cp betrieb/msmtprc.beispiel msmtprc && chmod 600 msmtprc && vim msmtprc
+defaults
+auth           on
+tls            on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+logfile        -
+set_from_header on
+
+account        drive
+host           SMTP-SERVER
+port           587
+from           drive@example.org
+user           drive@example.org
+passwordeval   "sed -n 's/^MSMTP_PASSWORD=//p' /etc/msmtp-drive.env"
+
+account default : drive

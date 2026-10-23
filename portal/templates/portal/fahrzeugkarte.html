@@ -1,0 +1,13 @@
+<a class="held" href="{% url 'fahrzeuge:uebersicht' k.f.pk %}">
+  {% if k.f.foto %}<img class="foto" src="{% url 'fahrzeuge:foto' k.f.pk %}" alt="" loading="lazy">{% else %}<div class="foto foto-leer" aria-hidden="true">{% if k.f.ist_anhaenger %}🚐{% else %}🚗{% endif %}</div>{% endif %}
+  <div class="karte">
+    <h3>{{ k.f }}</h3>
+    <p class="leise klein">{% if k.f.halter %}{{ k.f.halter.name }} · {% endif %}{{ k.f.kennzeichen }}{% if k.f.verkauft %} · verkauft {{ k.f.verkauf_datum|date:"m/Y" }}{% endif %}</p>
+    <div class="kennzahlen">
+      <div><div class="titel">Tachostand</div><div class="wert">{{ k.kz.tachostand|zahl }}</div><div class="einheit">km</div></div>
+      {% with v=k.kz.kraftstoffe.0.verbrauch %}{% if v and v.gesamt %}
+      <div><div class="titel">{{ k.kz.kraftstoffe.0.name }}</div><div class="wert">{{ v.gesamt|zahl:2 }}</div><div class="einheit">{{ k.kz.kraftstoffe.0.einheit }}/100 km</div></div>
+      {% endif %}{% endwith %}
+    </div>
+  </div>
+</a>

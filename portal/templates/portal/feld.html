@@ -1,0 +1,7 @@
+{% if feld.widget_type == 'checkbox' %}
+<div class="feld haken">{{ feld }}<div><label for="{{ feld.id_for_label }}">{{ feld.label }}</label>{% if feld.help_text %}<p class="hilfe">{{ feld.help_text }}</p>{% endif %}{% for f in feld.errors %}<p class="fehler">{{ f }}</p>{% endfor %}</div></div>
+{% elif feld.widget_type == 'radioselect' %}
+<fieldset class="feld"><legend>{{ feld.label }}</legend><div class="wahl">{% for r in feld %}<label>{{ r.tag }} {{ r.choice_label }}</label>{% endfor %}</div>{% for f in feld.errors %}<p class="fehler">{{ f }}</p>{% endfor %}</fieldset>
+{% else %}
+<div class="feld"><label for="{{ feld.id_for_label }}">{{ feld.label }}</label>{{ feld }}{% if feld.help_text %}<p class="hilfe">{{ feld.help_text }}</p>{% endif %}{% for f in feld.errors %}<p class="fehler">{{ f }}</p>{% endfor %}</div>
+{% endif %}

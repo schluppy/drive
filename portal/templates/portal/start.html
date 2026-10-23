@@ -1,0 +1,26 @@
+{% extends "portal/base.html" %}
+{% block titel %}Fahrzeuge{% endblock %}
+{% block inhalt %}
+<div class="kopfzeile"><h1>Fahrzeuge der Familie {{ user.familie }}</h1><a class="knopf zweit klein" href="{% url 'fahrzeuge:neu' %}">+ Fahrzeug</a></div>
+{% if anstehend %}
+<h2>Demnächst</h2>
+{% for f, fl in anstehend %}
+<a class="karte" href="{% url 'logbuch:erinnerungen' f.pk %}" style="--kat:{{ fl.erinnerung.kategorie.farbe }}">
+  <span class="balken"></span>
+  <div class="leiste-icons"><span>{% kategorie_marke fl.erinnerung.kategorie %} {{ fl.erinnerung.kategorie }}{% if fl.erinnerung.notiz %} – {{ fl.erinnerung.notiz }}{% endif %}</span>
+  <span class="klein {% if fl.ueberfaellig %}rot{% endif %}">{% if fl.tage_bis is not None %}{{ fl.tage_bis|zeitraum }}{% elif fl.km_rest is not None %}{{ fl.km_rest|vorzeichen }} km{% endif %}</span></div>
+  <div class="leise klein">{{ f }}{% if f.halter %} · {{ f.halter.vorname }}{% endif %}</div>
+</a>
+{% endfor %}
+{% endif %}
+<h2>Im Einsatz</h2>
+<div class="fahrzeugkarten">
+{% for k in aktiv %}{% include "portal/fahrzeugkarte.html" %}{% endfor %}
+</div>
+{% if verkauft %}
+<h2>Verkauft</h2>
+<div class="fahrzeugkarten">
+{% for k in verkauft %}{% include "portal/fahrzeugkarte.html" %}{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "portal/base.html" %}
+{% block titel %}{{ titel }}{% endblock %}
+{% block inhalt %}
+<h1>{% if eintrag.pk %}{{ titel }} bearbeiten{% else %}Neue {{ titel }}{% endif %}</h1>
+{% if erinnerung %}<p class="hinweis">Beim Speichern wird die Erinnerung „{{ erinnerung }}“ als erledigt markiert{% if erinnerung.wiederkehrend %} und die nächste eingetragen{% endif %}.</p>{% endif %}
+<form method="post" class="formular" id="eintrag">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<ul class="fehlerliste">{% for f in form.non_field_errors %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
+  {% if art == "tanken" %}
+    {% if fahrzeug.kraftstoff2 %}{% with feld=form.kraftstoff_nr %}{% include "portal/feld.html" %}{% endwith %}{% else %}<input type="hidden" name="kraftstoff_nr" value="1">{% endif %}
+    <div class="zeile2">
+      {% with feld=form.tachostand %}{% include "portal/feld.html" %}{% endwith %}
+      {% with feld=form.zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}
+    </div>
+    {% if letzter_stand and not eintrag.pk %}<p class="hilfe leise klein" style="margin-top:-.7rem">Zuletzt: {{ letzter_stand|km }}</p>{% endif %}
+    <div class="zeile3">
+      {% with feld=form.kosten %}{% include "portal/feld.html" %}{% endwith %}
+      {% with feld=form.preis %}{% include "portal/feld.html" %}{% endwith %}
+      {% with feld=form.menge %}{% include "portal/feld.html" %}{% endwith %}
+    </div>
+    <p class="hilfe leise klein" style="margin-top:-.7rem">Zwei der drei Werte reichen, der dritte wird gerechnet.</p>
+    <h3 class="abschnitt-titel">Füllstand</h3>
+    {% with feld=form.tank_voll %}{% include "portal/feld.html" %}{% endwith %}
+    <h3 class="abschnitt-titel">Details</h3>
+    {% with feld=form.vorherige_fehlt %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.bc_verbrauch %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.ort %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
+  {% elif art == "fahrt" %}
+    <h3 class="abschnitt-titel">Start</h3>
+    <div class="zeile2">{% with feld=form.start_km %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.start_zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}</div>
+    {% with feld=form.start_ort %}{% include "portal/feld.html" %}{% endwith %}
+    <h3 class="abschnitt-titel">Ziel</h3>
+    <div class="zeile2">{% with feld=form.tachostand %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}</div>
+    {% with feld=form.ort %}{% include "portal/feld.html" %}{% endwith %}
+    <h3 class="abschnitt-titel">Details</h3>
+    {% with feld=form.kosten %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
+  {% else %}
+    {% with feld=form.kategorie %}{% include "portal/feld.html" %}{% endwith %}
+    <div class="zeile2">{% with feld=form.tachostand %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}</div>
+    {% if letzter_stand and not eintrag.pk %}<p class="hilfe leise klein" style="margin-top:-.7rem">Zuletzt: {{ letzter_stand|km }}</p>{% endif %}
+    {% with feld=form.kosten %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.ort %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
+  {% endif %}
+  {% if form.unplausibel or form.trotzdem.value %}{% with feld=form.trotzdem %}{% include "portal/feld.html" %}{% endwith %}{% endif %}
+  {% if eintrag.pk %}<p class="leise klein">Erfasst von {{ eintrag.erfasst_von|default:"–" }}{% if eintrag.serie %} · aus der Serie „{{ eintrag.serie }}“{% endif %}</p>{% endif %}
+  <div class="knoepfe"><button class="knopf" type="submit">Speichern</button>
+  <a class="knopf zweit" href="{% url 'logbuch:liste' fahrzeug.pk %}">Abbrechen</a></div>
+</form>
+{% if eintrag.pk %}
+<form method="post" action="{% url 'logbuch:loeschen' eintrag.pk %}" onsubmit="return confirm('Eintrag wirklich löschen?')">
+  {% csrf_token %}<button class="knopf gefahr klein" type="submit">Eintrag löschen</button>
+</form>
+{% endif %}
+{% endblock %}
+{% block skript %}{% if art == "tanken" %}<script>
+// Gesamtpreis, Preis pro Liter, Menge: aus zweien den dritten rechnen (wie in DriveNote)
+(function () {
+  const f = document.getElementById("eintrag");
+  const k = f.elements.kosten, p = f.elements.preis, m = f.elements.menge;
+  const zahl = (el) => parseFloat((el.value || "").replace(",", "."));
+  let zuletzt = [];
+  function merken(el) { zuletzt = [el, ...zuletzt.filter((x) => x !== el)].slice(0, 2); }
+  function rechnen() {
+    const ziel = [k, p, m].find((el) => !zuletzt.includes(el));
+    const K = zahl(k), P = zahl(p), M = zahl(m);
+    const komma = (x, n) => x.toFixed(n).replace(".", ",");
+    if (ziel === k && P > 0 && M > 0) k.value = komma(P * M, 2);
+    if (ziel === p && K > 0 && M > 0) p.value = komma(K / M, 3);
+    if (ziel === m && K > 0 && P > 0) m.value = komma(K / P, 2);
+  }
+  [k, p, m].forEach((el) => { if (el.value) merken(el); el.addEventListener("input", () => { merken(el); rechnen(); }); });
+})();
+</script>{% endif %}{% endblock %}

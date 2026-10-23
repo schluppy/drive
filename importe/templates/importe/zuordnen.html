@@ -1,0 +1,25 @@
+{% extends "portal/base.html" %}
+{% block titel %}Fahrzeuge zuordnen{% endblock %}
+{% block inhalt %}
+<h1>Fahrzeuge zuordnen</h1>
+<p class="leise">Backup{% if meta.hMl %} vom {{ meta.hMl }}{% endif %}{% if meta.aV %}, DriveNote {{ meta.aV }}{% endif %}: {{ anzahl }} Logbucheinträge, {{ erinnerungen }} Erinnerungen. Alles wird als „erfasst von {{ user.name }}“ übernommen.</p>
+<form method="post">
+  {% csrf_token %}
+  {% for z in zeilen %}{% with fz=z.fz %}
+  <div class="karte weiss">
+    <h3>{{ fz.name }}</h3>
+    <p class="leise klein">{% if fz.felder.kennzeichen %}{{ fz.felder.kennzeichen }} · {% endif %}{{ fz.eintraege }} Einträge{% if fz.felder.kraftstoff %} · {{ fz.felder.kraftstoff|title }}{% if fz.felder.kraftstoff2 %} + AdBlue{% endif %}{% else %} · Anhänger{% endif %}{% if fz.felder.verkauf_datum %} · verkauft {{ fz.felder.verkauf_datum|date:"m/Y" }}{% endif %}{% if fz.foto %} · mit Foto{% endif %}</p>
+    {% if fz.kraftstoff_unsicher %}<p class="klein">Den Kraftstoff kann der Import nicht sicher erkennen – bitte danach im Fahrzeug prüfen.</p>{% endif %}
+    <div class="feld"><label for="fz{{ fz.nr }}">Übernehmen als</label>
+      <select id="fz{{ fz.nr }}" name="fz{{ fz.nr }}">
+        <option value="neu" {% if z.wahl == "neu" %}selected{% endif %}>neues Fahrzeug</option>
+        {% for f in vorhandene %}<option value="{{ f.pk }}" {% if z.wahl == f.pk|stringformat:"s" %}selected{% endif %}>zu „{{ f }}“{% if f.kennzeichen %} ({{ f.kennzeichen }}){% endif %}{% if f.halter %} · {{ f.halter.vorname }}{% endif %}</option>{% endfor %}
+        <option value="aus" {% if z.wahl == "aus" %}selected{% endif %}>nicht übernehmen</option>
+      </select>
+    </div>
+  </div>
+  {% endwith %}{% endfor %}
+  <div class="knoepfe"><button class="knopf" type="submit">Übernehmen</button>
+  <button class="knopf zweit" type="submit" name="abbrechen" value="1">Abbrechen</button></div>
+</form>
+{% endblock %}

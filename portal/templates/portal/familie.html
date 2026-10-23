@@ -1,0 +1,32 @@
+{% extends "portal/base.html" %}
+{% block titel %}Familie{% endblock %}
+{% block inhalt %}
+<h1>Familie {{ user.familie }}</h1>
+<div class="karte weiss">
+  <table>
+    <thead><tr><th>Name</th><th>E-Mail</th><th>zuletzt aktiv</th></tr></thead>
+    <tbody>
+    {% for p in mitglieder %}
+    <tr><td><span class="punkt" style="--kat:{{ p.diagrammfarbe }}"></span>{{ p.name }}{% if p == user %} (du){% endif %}{% if not p.is_active %} <span class="leise">(inaktiv)</span>{% endif %}</td>
+        <td>{{ p.email }}</td><td>{{ p.zuletzt_aktiv|date:"d.m.y"|default:"noch nie" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Person einladen</h2>
+<p class="leise">Die Person bekommt eine E-Mail mit einem Anmeldelink (gültig 7 Tage) und sieht danach alle Fahrzeuge der Familie. Für Freunde, die getrennt bleiben sollen, legt der Betreiber eine eigene Familie an.</p>
+<form method="post" class="formular">
+  {% csrf_token %}
+  {% include "portal/felder.html" %}
+  <button class="knopf" type="submit">Einladung senden</button>
+</form>
+
+<h2>Mehr</h2>
+<div class="fahrzeugkarten">
+  <a class="karte" href="{% url 'importe:hochladen' %}"><h3>📥 DriveNote-Backup importieren</h3><p class="leise klein">Jede Person kann ihr eigenes Backup übernehmen – gleiche Autos werden zusammengeführt.</p></a>
+  <a class="karte" href="{% url 'logbuch:kategorien' %}"><h3>🏷️ Kategorien</h3><p class="leise klein">Kostenarten der Familie mit Farbe und Symbol.</p></a>
+  <a class="karte" href="{% url 'fahrzeuge:liste' %}"><h3>🚗 Alle Fahrzeuge</h3><p class="leise klein">Auch verkaufte, mit Kennzahlen.</p></a>
+  <a class="karte" href="{% url 'portal:profil' %}"><h3>👤 Mein Profil</h3><p class="leise klein">Name, Farbe im Vergleich, Erinnerungsmails.</p></a>
+</div>
+{% endblock %}

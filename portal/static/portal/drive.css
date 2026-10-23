@@ -1,0 +1,200 @@
+/* Drive – angelehnt an DriveNote: Karten, Reiter je Fahrzeug, „+“ unten rechts. Handy zuerst. */
+:root {
+  --blau: #00639b;
+  --blau-hell: #e3eef7;
+  --orange: #e07b16;
+  --gruen: #3d8b3d;
+  --gruen-text: #5a9e2f;
+  --rot: #c62828;
+  --rot-hell: #fbe4e2;
+  --lila: #6b4fbb;
+  --grau: #5f6875;
+  --linie: #dde1e6;
+  --karte: #f1f3f6;
+  --flaeche: #ffffff;
+  --papier: #fafbfd;
+  --tinte: #1b1f24;
+  --kopf: #263238;
+  --schatten: 0 1px 2px rgba(0, 0, 0, .12), 0 1px 3px rgba(0, 0, 0, .06);
+  --r: 10px;
+  --mass: 46rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --blau: #8fcdff; --blau-hell: #17324a; --orange: #ffb067; --gruen: #8fd18f; --gruen-text: #9ed36a;
+    --rot: #ff8a80; --rot-hell: #3d1f1d; --lila: #b9a6ff; --grau: #a3abb5; --linie: #353c44;
+    --karte: #20262c; --flaeche: #181c20; --papier: #111417; --tinte: #e6e9ec; --kopf: #0b0e10;
+    --schatten: none; color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45;
+  color: var(--tinte); background: var(--papier); font-variant-numeric: tabular-nums; }
+a { color: var(--blau); text-underline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+h1, h2, h3 { line-height: 1.2; font-weight: 500; }
+h1 { font-size: 1.5rem; margin: .2rem 0 .8rem; }
+h2 { font-size: 1.15rem; margin: 1.6rem 0 .6rem; color: var(--blau); }
+h3 { font-size: 1rem; margin: 0 0 .5rem; }
+p { margin: 0 0 .8rem; }
+.leise { color: var(--grau); }
+.klein { font-size: .85rem; }
+.rechts { text-align: right; }
+.gruen { color: var(--gruen-text); }
+.rot { color: var(--rot); }
+.kursiv { font-style: italic; }
+
+/* Kopf */
+.kopf { background: var(--kopf); color: #fff; position: sticky; top: 0; z-index: 20; }
+.kopf-innen { max-width: var(--mass); margin: 0 auto; padding: .5rem 1rem; display: flex; align-items: center; gap: .8rem; }
+.marke { color: #fff; text-decoration: none; font-weight: 600; font-size: 1.15rem; display: flex; gap: .45rem; align-items: center; }
+.marke svg { width: 26px; height: 26px; }
+.kopf nav { display: flex; gap: .9rem; margin-left: auto; align-items: center; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+@media (max-width: 30rem) { .marke span { display: none; } .kopf nav { gap: .75rem; font-size: .92rem; } }
+.kopf nav a, .kopf nav button { color: #dfe6ea; text-decoration: none; background: none; border: 0; font: inherit; cursor: pointer; padding: .2rem 0; border-bottom: 2px solid transparent; }
+.kopf nav a[aria-current="page"], .kopf nav a:hover { color: #fff; border-bottom-color: #8fcdff; }
+.kopf form { margin: 0; }
+
+/* Reiter je Fahrzeug */
+.reiter { background: var(--kopf); position: sticky; top: 2.75rem; z-index: 19; }
+.reiter-innen { max-width: var(--mass); margin: 0 auto; display: flex; }
+.reiter a { flex: 1; text-align: center; color: #b7c2c9; text-decoration: none; padding: .55rem .2rem .5rem; font-size: .8rem; border-bottom: 3px solid transparent; }
+.reiter a span { display: block; font-size: 1.15rem; line-height: 1.2; }
+.reiter a[aria-current="page"] { color: #fff; border-bottom-color: #fff; }
+.fahrzeugwahl { max-width: var(--mass); margin: 0 auto; padding: .6rem 1rem 0; }
+.fahrzeugwahl select { font: inherit; font-size: 1.05rem; font-weight: 500; border: 0; background: transparent; color: var(--tinte); padding: .2rem 0; max-width: 100%; }
+
+main { max-width: var(--mass); margin: 0 auto; padding: 1rem 1rem 6rem; }
+.fuss-seite { max-width: var(--mass); margin: 0 auto; padding: 0 1rem 5rem; font-size: .85rem; color: var(--grau); }
+.fuss-seite a { color: var(--grau); }
+
+/* Karten */
+.karte { background: var(--karte); border-radius: var(--r); padding: .9rem 1rem; margin: 0 0 .8rem; box-shadow: var(--schatten); position: relative; }
+.karte > :last-child { margin-bottom: 0; }
+.karte.weiss { background: var(--flaeche); border: 1px solid var(--linie); box-shadow: none; }
+a.karte { display: block; color: inherit; text-decoration: none; }
+a.karte:hover { outline: 2px solid var(--blau-hell); }
+.karte .balken { position: absolute; left: 0; top: 0; width: 3.4rem; height: 6px; border-radius: var(--r) 0 0 0; background: var(--kat, var(--blau)); }
+.kennzahlen { display: grid; grid-template-columns: repeat(auto-fit, minmax(5.8rem, 1fr)); gap: .2rem 0; }
+.kennzahlen > div { padding: 0 .6rem; min-width: 0; border-left: 1px solid var(--linie); }
+.kennzahlen > div:first-child { border-left: 0; padding-left: .2rem; }
+.kennzahlen .wert { font-size: clamp(1.25rem, 5.6vw, 1.6rem); color: var(--blau); line-height: 1.15; white-space: nowrap; }
+.kennzahlen .einheit { font-size: .8rem; color: var(--grau); }
+.kennzahlen .titel { font-size: .9rem; }
+.trend-hoch::before { content: "↗ "; color: var(--rot); }
+.trend-runter::before { content: "↘ "; color: var(--gruen); }
+
+.foto { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--r) var(--r) 0 0; display: block; background: var(--linie); }
+.foto-leer { display: grid; place-items: center; font-size: 3.5rem; }
+.held { border-radius: var(--r); overflow: hidden; margin-bottom: .8rem; background: var(--karte); box-shadow: var(--schatten); }
+.held .karte { border-radius: 0; margin: 0; box-shadow: none; }
+
+/* Daten in zwei Spalten */
+dl.daten { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem 1rem; margin: 0 0 1rem; }
+dl.daten dt { font-size: .8rem; color: var(--grau); }
+dl.daten dd { margin: 0; font-size: 1.05rem; }
+
+/* Logbuch */
+.monat { display: flex; justify-content: space-between; color: var(--grau); margin: 1.2rem .2rem .4rem; font-size: .95rem; }
+a.karte.eintrag, .eintrag { display: grid; grid-template-columns: 2rem 1fr auto; gap: 0 .6rem; padding-top: 1rem; }
+.eintrag .titel { font-size: 1.05rem; }
+.eintrag .titel small { color: var(--grau); font-size: .8rem; }
+.eintrag .unter { font-size: .82rem; color: var(--grau); }
+.eintrag .betrag { text-align: right; font-size: 1.05rem; white-space: nowrap; }
+.eintrag .betrag small { display: block; font-size: .8rem; color: var(--grau); }
+.eintrag .zusatz { grid-column: 2 / 4; display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; font-size: .85rem; margin-top: .15rem; }
+.kat-symbol { width: 2rem; height: 2rem; display: inline-grid; place-items: center; font-size: 1.2rem; }
+
+/* Chips (Filter, Jahre) */
+.chips { display: flex; gap: .4rem; flex-wrap: wrap; margin: 0 0 1rem; }
+.chips a { padding: .3rem .75rem; border: 1px solid var(--linie); border-radius: 8px; text-decoration: none; color: var(--tinte); font-size: .9rem; background: var(--flaeche); }
+.chips a[aria-current="true"] { background: var(--blau-hell); border-color: var(--blau); color: var(--tinte); }
+
+/* Tabellen */
+.tabelle-rahmen { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { padding: .35rem .45rem; text-align: left; border-bottom: 1px solid var(--linie); vertical-align: top; }
+th { font-weight: 500; color: var(--grau); font-size: .8rem; }
+td.zahl, th.zahl { text-align: right; white-space: nowrap; }
+tfoot td { font-weight: 600; border-bottom: 0; }
+.punkt { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; background: var(--kat); margin-right: .35rem; vertical-align: -.05rem; }
+
+/* Diagramme */
+.diagramm { width: 100%; height: auto; display: block; margin: .2rem 0 .6rem; }
+.diagramm .gitter { stroke: var(--linie); stroke-width: 1; }
+.diagramm .achse { fill: var(--grau); font-size: 12px; }
+.ring { width: 11rem; height: 11rem; display: block; margin: 0 auto .6rem; }
+.ring-text { fill: var(--tinte); font-size: 22px; }
+.legende { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .85rem; margin: 0 0 .6rem; }
+.legende span::before { content: ""; display: inline-block; width: .8rem; height: .25rem; background: var(--kat); margin-right: .35rem; vertical-align: .2rem; }
+.legende .gestrichelt::before { background: repeating-linear-gradient(90deg, var(--kat) 0 4px, transparent 4px 7px); }
+.diagramm-leer { margin: .5rem 0 1rem; }
+
+/* Bestenliste */
+.beste { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .7rem; margin-bottom: 1rem; }
+.beste .karte { margin: 0; }
+.beste .pokal { font-size: 1.5rem; float: right; }
+.beste .wert { font-size: 1.45rem; color: var(--blau); }
+.rang { font-weight: 600; width: 1.6rem; }
+
+/* Formulare */
+.formular { max-width: 32rem; }
+.feld { margin-bottom: 1rem; }
+.feld > label, .feld > .label { display: block; font-size: .85rem; color: var(--grau); margin-bottom: .2rem; }
+.feld input[type=text], .feld input[type=email], .feld input[type=number], .feld input[type=date],
+.feld input[type=datetime-local], .feld input:not([type]), .feld select, .feld textarea {
+  width: 100%; font: inherit; font-size: 1.05rem; padding: .6rem .7rem; border: 1px solid var(--linie);
+  border-radius: 6px; background: var(--flaeche); color: var(--tinte); }
+.feld input[type=color] { width: 4rem; height: 2.4rem; border: 1px solid var(--linie); border-radius: 6px; background: var(--flaeche); }
+.feld .hilfe { font-size: .8rem; color: var(--grau); margin: .2rem 0 0; }
+.feld .fehler, .fehlerliste { color: var(--rot); font-size: .88rem; margin: .25rem 0 0; }
+.fehlerliste { background: var(--rot-hell); padding: .6rem .8rem; border-radius: 6px; list-style: none; margin: 0 0 1rem; }
+.feld.haken { display: flex; gap: .6rem; align-items: flex-start; }
+.feld.haken input { width: 1.3rem; height: 1.3rem; margin: .1rem 0 0; accent-color: var(--blau); }
+.feld.haken label { color: var(--tinte); font-size: 1rem; margin: 0; }
+.zeile2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .9rem; }
+.zeile3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 .6rem; }
+@media (max-width: 26rem) { .zeile3 { grid-template-columns: 1fr 1fr; } }
+.einheit-feld { position: relative; }
+.wahl { display: flex; gap: .4rem; flex-wrap: wrap; }
+.wahl label { border: 1px solid var(--linie); border-radius: 8px; padding: .45rem .9rem; cursor: pointer; background: var(--flaeche); color: var(--tinte); font-size: .95rem; }
+.wahl input { position: absolute; opacity: 0; }
+.wahl label:has(input:checked) { background: var(--blau-hell); border-color: var(--blau); }
+.wahl label:has(input:focus-visible) { outline: 3px solid var(--orange); }
+fieldset { border: 0; padding: 0; margin: 0 0 1rem; }
+legend { font-size: .85rem; color: var(--grau); margin-bottom: .3rem; padding: 0; }
+.abschnitt-titel { color: var(--blau); font-size: 1rem; margin: 1.2rem 0 .6rem; }
+
+.knopf { display: inline-block; background: var(--blau); color: #fff; border: 0; border-radius: 22px; padding: .65rem 1.3rem; font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
+@media (prefers-color-scheme: dark) { .knopf { color: #00253d; } }
+.knopf.zweit { background: transparent; color: var(--blau); border: 1px solid var(--linie); }
+.knopf.gefahr { background: transparent; color: var(--rot); border: 1px solid var(--rot); }
+.knopf.klein { padding: .35rem .8rem; font-size: .88rem; }
+.knoepfe { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin: 1.2rem 0; }
+
+/* Meldungen */
+.meldungen { list-style: none; padding: 0; margin: 0 0 1rem; }
+.meldung { padding: .6rem .9rem; border-radius: 6px; margin-bottom: .4rem; background: var(--blau-hell); border-left: 4px solid var(--blau); }
+.meldung.error { border-color: var(--rot); background: var(--rot-hell); }
+.hinweis { background: var(--blau-hell); border-radius: 6px; padding: .7rem .9rem; margin: 0 0 1rem; font-size: .92rem; }
+.warnung { background: var(--rot-hell); border-radius: 6px; padding: .7rem .9rem; margin: 0 0 1rem; }
+
+/* „+“ unten rechts mit Auswahl wie in DriveNote */
+.plus { position: fixed; right: max(1rem, calc((100vw - var(--mass)) / 2 + 1rem)); bottom: 1.2rem; z-index: 30; }
+.plus summary { list-style: none; width: 3.6rem; height: 3.6rem; border-radius: 16px; background: var(--blau); color: #fff; display: grid; place-items: center; font-size: 2rem; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,.3); margin-left: auto; }
+@media (prefers-color-scheme: dark) { .plus summary { color: #00253d; } }
+.plus summary::-webkit-details-marker { display: none; }
+.plus[open] summary { transform: rotate(45deg); }
+.plus .menue { position: absolute; right: 0; bottom: 4.4rem; background: var(--flaeche); border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,.25); padding: .4rem 0; min-width: 15rem; border: 1px solid var(--linie); }
+.plus .menue a { display: flex; gap: .8rem; align-items: center; padding: .75rem 1.1rem; color: var(--tinte); text-decoration: none; font-size: 1.05rem; }
+.plus .menue a:hover { background: var(--karte); }
+
+.kopfzeile { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.kopfzeile h1, .kopfzeile h2 { margin-bottom: .4rem; }
+.fahrzeugkarten { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .8rem; }
+.fahrzeugkarten .held { margin: 0; }
+.fahrzeugkarten a { color: inherit; text-decoration: none; }
+.leiste-icons { display: flex; justify-content: space-between; align-items: center; }

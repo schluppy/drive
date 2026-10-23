@@ -1,0 +1,15 @@
+{% extends "portal/base.html" %}
+{% block titel %}Kategorien{% endblock %}
+{% block inhalt %}
+<div class="kopfzeile"><h1>Kategorien</h1><a class="knopf zweit klein" href="{% url 'logbuch:kategorie_neu' %}">+ Kategorie</a></div>
+{% regroup kategorien by geschuetzt as gruppen %}
+{% for g in gruppen %}
+<h2 class="leise" style="color:inherit">{% if g.grouper %}Geschützte Kategorien{% else %}Benutzerdefinierte Kategorien{% endif %}</h2>
+{% for k in g.list %}
+<a class="karte" href="{% url 'logbuch:kategorie' k.pk %}" style="--kat:{{ k.farbe }}"><span class="balken"></span>
+  <div class="leiste-icons"><span>{% kategorie_marke k %} {{ k }}</span>{% if k.geschuetzt %}<span aria-label="geschützt">🔒</span>{% endif %}</div>
+  <div class="leise klein" style="padding-left:2.6rem">{{ k.n_eintraege }} Logbucheinträge{% if k.n_erinnerungen %} · {{ k.n_erinnerungen }} Erinnerungen{% endif %}</div>
+</a>
+{% endfor %}
+{% endfor %}
+{% endblock %}

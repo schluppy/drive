@@ -1,0 +1,4 @@
+<nav class="chips" aria-label="Zeitraum">
+  <a href="?" {% if not jahr %}aria-current="true"{% endif %}>Gesamt</a>
+  {% for j in jahre %}<a href="?jahr={{ j }}" {% if j == jahr %}aria-current="true"{% endif %}>{{ j }}</a>{% endfor %}
+</nav>

@@ -1,0 +1,76 @@
+{% load static %}<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#263238">
+  <title>{% block titel %}Drive{% endblock %} – Drive</title>
+  <link rel="stylesheet" href="{% static 'portal/drive.css' %}">
+  <link rel="icon" href="{% static 'portal/drive.svg' %}">
+  <link rel="apple-touch-icon" href="{% static 'portal/drive-192.png' %}">
+  <link rel="manifest" href="{% url 'portal:manifest' %}">
+  {% block kopf %}{% endblock %}
+</head>
+<body>
+<header class="kopf">
+  <div class="kopf-innen">
+    <a class="marke" href="{% url 'portal:start' %}">{% include "portal/logo.svg" %}<span>Drive</span></a>
+    <nav aria-label="Hauptnavigation">
+      {% with seite=request.resolver_match.url_name app=request.resolver_match.app_name %}
+      {% if user.is_authenticated and user.familie_id %}
+      <a href="{% url 'portal:start' %}" {% if seite == 'start' %}aria-current="page"{% endif %}>Fahrzeuge</a>
+      <a href="{% url 'auswertung:vergleich' %}" {% if seite == 'vergleich' %}aria-current="page"{% endif %}>Vergleich</a>
+      <a href="{% url 'portal:familie' %}" {% if seite == 'familie' or seite == 'profil' or app == 'importe' or seite == 'kategorien' %}aria-current="page"{% endif %}>Familie</a>
+      {% endif %}
+      {% if user.is_authenticated %}
+      {% if user.is_superuser %}<a href="{% url 'admin:index' %}" title="Verwaltung">⚙︎</a>{% endif %}
+      <form method="post" action="{% url 'portal:abmelden' %}">{% csrf_token %}<button type="submit">Abmelden</button></form>
+      {% endif %}
+      {% endwith %}
+    </nav>
+  </div>
+</header>
+{% if fahrzeug and fahrzeug.pk and tab %}
+<nav class="reiter" aria-label="{{ fahrzeug }}">
+  <div class="reiter-innen">
+    <a href="{% url 'fahrzeuge:uebersicht' fahrzeug.pk %}" {% if tab == 'fahrzeug' %}aria-current="page"{% endif %}><span aria-hidden="true">🚗</span>Fahrzeug</a>
+    <a href="{% url 'logbuch:liste' fahrzeug.pk %}" {% if tab == 'logbuch' %}aria-current="page"{% endif %}><span aria-hidden="true">📄</span>Logbuch</a>
+    {% if not fahrzeug.ist_anhaenger %}<a href="{% url 'auswertung:statistik' fahrzeug.pk %}" {% if tab == 'statistik' %}aria-current="page"{% endif %}><span aria-hidden="true">📈</span>Statistik</a>{% endif %}
+    <a href="{% url 'auswertung:kosten' fahrzeug.pk %}" {% if tab == 'kosten' %}aria-current="page"{% endif %}><span aria-hidden="true">🍩</span>Kosten</a>
+    <a href="{% url 'logbuch:erinnerungen' fahrzeug.pk %}" {% if tab == 'erinnerungen' %}aria-current="page"{% endif %}><span aria-hidden="true">📅</span>Termine</a>
+  </div>
+</nav>
+{% if alle_fahrzeuge|length > 1 %}
+<form class="fahrzeugwahl" method="get" action="{% url 'portal:start' %}" onchange="location.href=this.elements.f.value">
+  <label class="leise klein" for="fahrzeugwahl">Fahrzeug</label>
+  <select id="fahrzeugwahl" name="f">
+    {% for f in alle_fahrzeuge %}
+    <option value="{{ request.path|wechsel:f.pk }}" {% if f.pk == fahrzeug.pk %}selected{% endif %}>{{ f }}{% if f.halter %} · {{ f.halter.vorname }}{% endif %}{% if f.verkauft %} (verkauft){% endif %}</option>
+    {% endfor %}
+  </select>
+  <noscript><button type="submit">Wechseln</button></noscript>
+</form>
+{% endif %}
+{% endif %}
+<main>
+  {% if messages %}
+  <ul class="meldungen">{% for m in messages %}<li class="meldung {{ m.tags }}">{{ m }}</li>{% endfor %}</ul>
+  {% endif %}
+  {% block inhalt %}{% endblock %}
+</main>
+{% if fahrzeug and fahrzeug.pk and tab %}
+<details class="plus">
+  <summary aria-label="Neu">+</summary>
+  <div class="menue">
+    {% if fahrzeug.kraftstoff %}<a href="{% url 'logbuch:neu' fahrzeug.pk 'tanken' %}">⛽ Neue Tankfüllung</a>{% endif %}
+    <a href="{% url 'logbuch:neu' fahrzeug.pk 'kosten' %}">📄 Neuer Logbucheintrag</a>
+    <a href="{% url 'logbuch:serie_neu' fahrzeug.pk %}">🔁 Neue Serie</a>
+    <a href="{% url 'logbuch:neu' fahrzeug.pk 'fahrt' %}">🛣️ Neue Fahrt</a>
+    <a href="{% url 'logbuch:erinnerung_neu' fahrzeug.pk %}">⏰ Neue Erinnerung</a>
+  </div>
+</details>
+{% endif %}
+<footer class="fuss-seite"><a href="{% url 'portal:datenschutz' %}">Datenschutz</a>{% if user.is_authenticated %} · <a href="{% url 'portal:profil' %}">{{ user.name }}</a>{% endif %}</footer>
+{% block skript %}{% endblock %}
+</body>
+</html>

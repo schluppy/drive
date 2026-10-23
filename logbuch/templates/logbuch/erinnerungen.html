@@ -1,0 +1,13 @@
+{% extends "portal/base.html" %}
+{% block titel %}Termine {{ fahrzeug }}{% endblock %}
+{% block inhalt %}
+<div class="kopfzeile"><h1>Geplant</h1><a class="knopf zweit klein" href="{% url 'logbuch:erinnerung_neu' fahrzeug.pk %}">+ Erinnerung</a></div>
+{% for fl in geplant %}{% include "logbuch/erinnerung_karte.html" %}{% empty %}<p class="leise">Keine offenen Erinnerungen.</p>{% endfor %}
+<p class="leise klein">Kursiv = geschätzt aus der Fahrleistung der letzten zwölf Monate. Eine Mail kommt {{ tage_vorher }} Tage bzw. {{ km_vorher }} km vorher.</p>
+{% if erledigt %}
+<h2>Erledigt</h2>
+<div class="karte weiss"><table><tbody>
+{% for e in erledigt %}<tr><td>{{ e.kategorie.zeichen }} {{ e.kategorie }}{% if e.notiz %} – {{ e.notiz }}{% endif %}</td><td class="zahl">{{ e.erledigt_am|date:"d.m.y" }}</td><td class="zahl"><a href="{% url 'logbuch:erinnerung' fahrzeug.pk e.pk %}">ansehen</a></td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+{% endblock %}
