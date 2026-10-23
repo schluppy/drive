@@ -45,17 +45,23 @@
 <section class="karte weiss">
   <h2 style="margin-top:0">Fahrleistung</h2>
   {{ fahrleistung }}
-  {% if not jahr %}
-  <div class="tabelle-rahmen"><table>
-    <thead><tr><th>Jahr</th><th class="zahl">km</th><th class="zahl">pro Monat</th></tr></thead>
-    <tbody>{% for j, km in jahresfahrleistung %}<tr><td>{{ j }}</td><td class="zahl">{{ km|zahl }}</td><td class="zahl">{{ km|teile:12|zahl }}</td></tr>{% endfor %}</tbody>
+  <div class="kennzahlen">
+    <div><div class="titel">Fahrleistung pro Tag</div><div class="wert">{{ fl.pro_tag|zahl:1 }}</div><div class="einheit">km</div></div>
+    {% if fl.prognose is not None %}<div><div class="titel">Voraussichtlich {{ fl.prognose_jahr }}</div><div class="wert">{{ fl.prognose|zahl:2 }}</div><div class="einheit">km</div></div>{% endif %}
+  </div>
+  <div class="tabelle-rahmen" style="margin-top:1rem"><table>
+    <thead><tr><th>Jahr</th><th class="zahl">pro Tag</th><th class="zahl">pro Monat</th><th class="zahl">Fahrleistung</th></tr></thead>
+    <tbody>{% for j, z in jahreszeilen %}<tr><td>{% if not jahr %}<a href="?jahr={{ j }}">{{ j }}</a>{% else %}{{ j }}{% endif %}</td><td class="zahl">{{ z.pro_tag|zahl:1 }} km</td><td class="zahl">{{ z.pro_monat|zahl:1 }} km</td><td class="zahl">{{ z.km|zahl:1 }} km</td></tr>{% endfor %}</tbody>
+    {% if not jahr %}<tfoot><tr><td></td><td></td><td></td><td class="zahl">{{ fl_summe|zahl:1 }} km</td></tr></tfoot>{% endif %}
   </table></div>
-  {% else %}<p class="leise klein">{{ jahr }}: {{ kz.fahrleistung|km }}</p>{% endif %}
 </section>
 
 <section class="karte weiss">
   <h2 style="margin-top:0">Tachostand</h2>
   {{ tacho }}
-  {% if kz.km_pro_tag %}<p class="leise klein">Zuletzt {{ kz.km_pro_tag|zahl:1 }} km am Tag (zwölf Monate) – rund {{ kz.km_pro_tag|mal:365|zahl }} km im Jahr.</p>{% endif %}
+  <div class="tabelle-rahmen"><table>
+    <thead><tr><th>Jahr</th><th class="zahl">Anfangstachostand</th><th class="zahl">Tachostand</th></tr></thead>
+    <tbody>{% for j, z in jahreszeilen %}<tr><td>{{ j }}</td><td class="zahl">{{ z.erster|km }}</td><td class="zahl">{{ z.letzter|km }}</td></tr>{% endfor %}</tbody>
+  </table></div>
 </section>
 {% endblock %}

@@ -9,9 +9,11 @@
   <div class="zeile2">{% with feld=form.hersteller %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.modell %}{% include "portal/feld.html" %}{% endwith %}</div>
   {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
   <div class="zeile2">{% with feld=form.kennzeichen %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.halter %}{% include "portal/feld.html" %}{% endwith %}</div>
+<div id="kraftstoff">
   <h3 class="abschnitt-titel">Kraftstoff</h3>
   <div class="zeile2">{% with feld=form.kraftstoff %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.tankvolumen %}{% include "portal/feld.html" %}{% endwith %}</div>
   <div class="zeile2">{% with feld=form.kraftstoff2 %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.tankvolumen2 %}{% include "portal/feld.html" %}{% endwith %}</div>
+</div>
   <h3 class="abschnitt-titel">Daten</h3>
   <div class="zeile2">{% with feld=form.motorisierung %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.versicherung %}{% include "portal/feld.html" %}{% endwith %}</div>
   {% with feld=form.fin %}{% include "portal/feld.html" %}{% endwith %}
@@ -38,3 +40,11 @@
 </details>
 {% endif %}
 {% endblock %}
+{% block skript %}<script>
+// Wohnwagen und Anhänger haben keinen Motor: Kraftstoff ausblenden
+(function () {
+  const art = document.getElementById("id_art"), block = document.getElementById("kraftstoff");
+  const zeigen = () => { block.hidden = ["wohnwagen", "anhaenger"].includes(art.value); };
+  art.addEventListener("change", zeigen); zeigen();
+})();
+</script>{% endblock %}

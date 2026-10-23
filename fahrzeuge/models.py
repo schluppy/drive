@@ -2,8 +2,8 @@
 
 Ein Fahrzeug gehört der Familie; alle Mitglieder sehen und bearbeiten es. Der Halter
 ist die Person, die es hauptsächlich fährt – unter ihrem Namen erscheint es im Vergleich.
-Bis zu zwei Kraftstoffe je Fahrzeug, z. B. Diesel und AdBlue. Anhänger und Wohnwagen
-haben keinen Kraftstoff; ihr Tachostand ergibt sich aus den Fahrten.
+Bis zu zwei Kraftstoffe je Fahrzeug, z. B. Diesel und AdBlue. Wohnwagen und Anhänger
+haben keinen Motor und tanken nicht; ihre Strecke ergibt sich aus den Fahrten.
 """
 from datetime import date
 
@@ -36,7 +36,11 @@ class Fahrzeugart(models.TextChoices):
     MOTORRAD = "motorrad", "Motorrad"
     TRANSPORTER = "transporter", "Transporter"
     WOHNMOBIL = "wohnmobil", "Wohnmobil"
-    ANHAENGER = "anhaenger", "Anhänger / Wohnwagen"
+    WOHNWAGEN = "wohnwagen", "Wohnwagen"
+    ANHAENGER = "anhaenger", "Anhänger"
+
+
+OHNE_MOTOR = (Fahrzeugart.WOHNWAGEN, Fahrzeugart.ANHAENGER)
 
 
 def foto_pfad(instanz, dateiname):
@@ -59,7 +63,7 @@ class Fahrzeug(models.Model):
     fin = models.CharField("Fahrzeug-Ident.-Nr.", max_length=30, blank=True)
 
     kraftstoff = models.CharField("Kraftstoff", max_length=10, choices=Kraftstoff.choices, blank=True,
-                                  help_text="leer bei Anhängern")
+                                  help_text="leer bei Wohnwagen und Anhängern")
     tankvolumen = models.DecimalField("Tankvolumen", max_digits=6, decimal_places=1, null=True, blank=True,
                                       help_text="Liter bzw. kWh")
     kraftstoff2 = models.CharField("Zweiter Kraftstoff", max_length=10, choices=Kraftstoff.choices, blank=True,
@@ -98,8 +102,9 @@ class Fahrzeug(models.Model):
         return self.verkauf_datum is not None
 
     @property
-    def ist_anhaenger(self):
-        return self.art == Fahrzeugart.ANHAENGER
+    def ohne_motor(self):
+        """Wohnwagen und Anhänger: kein Kraftstoff, Strecke nur aus Fahrten"""
+        return self.art in OHNE_MOTOR
 
     @property
     def kraftstoffe(self):

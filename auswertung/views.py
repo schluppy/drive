@@ -71,48 +71,26 @@ def statistik(request, fahrzeug_id):
             "je_jahr": je_jahr,
         })
 
-    # Fahrleistung
+    # Fahrleistung (Jahresgrenzen interpoliert) und Tachostand
     jf = vb.jahresfahrleistung(fahrzeug, eintraege)
     if jahr is None:
         fl_beschr = [str(j) for j in sorted(jf)]
-        fl_werte = [jf[j] for j in sorted(jf)]
+        fl_werte = [jf[j].km for j in sorted(jf)]
     else:
-        fl_beschr, fl_werte = MONATE, _monatsfahrleistung(fahrzeug, eintraege, jahr)
+        fl_beschr, fl_werte = MONATE, vb.monatsfahrleistung(fahrzeug, jahr, eintraege)
     fahrleistung = dg.balken(fl_beschr, [{"name": "Fahrleistung", "farbe": "var(--blau)", "werte": fl_werte}],
                              einheit="km")
-    liste = vb.mit_tachostand(e for e in eintraege
-                              if jahr is None or timezone.localtime(e.zeitpunkt).year == jahr)
-    tacho = dg.linien([{"name": "Tachostand", "farbe": "var(--blau)",
-                        "punkte": [(timezone.localtime(e.zeitpunkt).date(), e.tachostand, None) for e in liste]}],
+    punkte = [(d, k) for d, k in vb.tachopunkte(eintraege) if jahr is None or d.year == jahr]
+    tacho = dg.linien([{"name": "Tachostand", "farbe": "var(--blau)", "punkte": [(d, k, None) for d, k in punkte]}],
                       einheit="km", stellen_wert=0, flaeche=True)
+    jahreszeilen = [(j, jf[j]) for j in sorted(jf, reverse=True) if jahr is None or j == jahr]
     return render(request, "auswertung/statistik.html", {
         "fahrzeug": fahrzeug, "kz": kz, "jahr": jahr, "jahre": alle_jahre, "kraftstoffe": kraftstoffe,
-        "fahrleistung": fahrleistung, "tacho": tacho, "jahresfahrleistung": sorted(jf.items(), reverse=True),
+        "fahrleistung": fahrleistung, "tacho": tacho, "jahreszeilen": jahreszeilen,
+        "fl": vb.fahrleistung_kennzahlen(fahrzeug, eintraege),
+        "fl_summe": sum((z.km for _, z in jahreszeilen), Decimal(0)),
         "tab": "statistik",
     })
-
-
-def _monatsfahrleistung(fahrzeug, eintraege, jahr):
-    liste = vb.mit_tachostand(eintraege)
-    stand_ende = {}
-    vorher = None
-    for e in liste:
-        t = timezone.localtime(e.zeitpunkt)
-        if t.year < jahr:
-            vorher = max(vorher or 0, e.tachostand)
-        elif t.year == jahr:
-            stand_ende[t.month] = max(stand_ende.get(t.month, 0), e.tachostand)
-    if vorher is None:
-        vorher = vb.start_tachostand(fahrzeug, liste) or 0
-    werte = []
-    for m in range(1, 13):
-        if m in stand_ende:
-            stand = max(stand_ende[m], vorher)
-            werte.append(stand - vorher)
-            vorher = stand
-        else:
-            werte.append(0)
-    return werte
 
 
 @familie_noetig
@@ -151,7 +129,7 @@ def kosten(request, fahrzeug_id):
     je_jahr = []
     for j in (alle_jahre if jahr is None else [jahr]):
         s = sum((e.kosten for e in eintraege if timezone.localtime(e.zeitpunkt).year == j), Decimal(0))
-        kmj = jf.get(j, 0)
+        kmj = int(round(jf[j].km)) if j in jf else 0
         monate = 12 if j != date.today().year else date.today().month
         je_jahr.append({"jahr": j, "summe": s, "monat": s / monate, "km": kmj, "je_km": s / kmj if kmj else None})
 

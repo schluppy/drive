@@ -18,6 +18,8 @@ class FamilienTest(TestCase):
         self.kb = Kategorie.objects.get(familie=self.familie_b, name="TÜV")
         self.erb = Erinnerung.objects.create(fahrzeug=self.fb, kategorie=self.kb, faellig_km=5000)
         self.sb = Serie.objects.create(fahrzeug=self.fb, kategorie=self.kb, betrag=10, beginn="2026-01-01")
+        from logbuch.models import Ort
+        self.ob = Ort.objects.create(familie=self.familie_b, name="Geheimer Ort")
         self.client.force_login(self.a)
 
     def test_fremde_seiten_404(self):
@@ -29,6 +31,7 @@ class FamilienTest(TestCase):
             reverse("logbuch:serie", args=[f, self.sb.pk]), reverse("logbuch:erinnerungen", args=[f]),
             reverse("logbuch:erinnerung", args=[f, self.erb.pk]), reverse("logbuch:erledigt", args=[f, self.erb.pk]),
             reverse("logbuch:bearbeiten", args=[self.eb.pk]), reverse("logbuch:kategorie", args=[self.kb.pk]),
+            reverse("logbuch:ort", args=[self.ob.pk]),
             reverse("auswertung:statistik", args=[f]), reverse("auswertung:kosten", args=[f]),
             # Erinnerung/Serie der anderen Familie unter dem eigenen Fahrzeug
             reverse("logbuch:erinnerung", args=[self.fa.pk, self.erb.pk]),
@@ -45,9 +48,11 @@ class FamilienTest(TestCase):
         self.assertTrue(Eintrag.objects.filter(pk=self.eb.pk).exists())
 
     def test_vergleich_und_start_nur_eigene(self):
-        for url in (reverse("auswertung:vergleich"), reverse("portal:start"), reverse("fahrzeuge:liste")):
+        for url in (reverse("auswertung:vergleich"), reverse("portal:start"), reverse("fahrzeuge:liste"),
+                    reverse("logbuch:orte"), reverse("logbuch:neu", args=[self.fa.pk, "kosten"])):
             inhalt = self.client.get(url).content.decode()
             self.assertNotIn("Fremdes", inhalt, url)
+            self.assertNotIn("Geheimer Ort", inhalt, url)
 
     def test_fremde_kategorie_nicht_waehlbar(self):
         antwort = self.client.post(reverse("logbuch:neu", args=[self.fa.pk, "kosten"]), {

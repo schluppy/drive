@@ -211,7 +211,7 @@ def fahrzeuge(backup):
         pkw = z.get("v53") != "10"
         code = z.get("v25")
         felder = {
-            "art": "pkw" if pkw else "anhaenger",
+            "art": "pkw" if pkw else "wohnwagen",   # Anhänger ohne Motor kennt DriveNote nicht getrennt
             "hersteller": (z.get("v20") or "Fahrzeug").strip(),
             "modell": (z.get("v21") or "").strip(),
             "beschreibung": (z.get("v22") or "").strip(),

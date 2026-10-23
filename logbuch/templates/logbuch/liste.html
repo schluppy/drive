@@ -22,10 +22,10 @@
     <div class="titel">{{ e.kategorie }}{% if e.ist_tanken and fahrzeug.kraftstoff2 %} <small>· {% if e.kraftstoff_nr == 2 %}{{ fahrzeug.get_kraftstoff2_display }}{% else %}{{ fahrzeug.get_kraftstoff_display }}{% endif %}</small>{% endif %}</div>
     <div class="unter">{% if e.tachostand is not None %}{{ e.tachostand|zahl }} km · {% endif %}{{ e.zeitpunkt|date:"d.m.y" }}{% if e.erfasst_von and e.erfasst_von != user %} · {{ e.erfasst_von.vorname }}{% endif %}</div>
   </div>
-  <div class="betrag">{{ e.kosten|euro }}{% if e.preis_je_einheit %}<small>{{ e.preis_je_einheit|zahl:3 }} €/{% if e.kraftstoff_nr == 2 %}{{ fahrzeug.einheit2 }}{% else %}{{ fahrzeug.einheit }}{% endif %}</small>{% endif %}</div>
+  <div class="betrag">{% if e.ist_fahrt %}{{ z.strecke|zahl }} km{% else %}{{ e.kosten|euro }}{% endif %}{% if e.preis_je_einheit %}<small>{{ e.preis_je_einheit|zahl:3 }} €/{% if e.kraftstoff_nr == 2 %}{{ fahrzeug.einheit2 }}{% else %}{{ fahrzeug.einheit }}{% endif %}</small>{% endif %}</div>
   <div class="zusatz">
     <span>{% if z.abschnitt %}<span class="trend-{{ z.trend }}">{{ z.abschnitt.verbrauch|zahl:3 }} {% if e.kraftstoff_nr == 2 %}{{ fahrzeug.einheit2 }}{% else %}{{ fahrzeug.einheit }}{% endif %}/100km</span>{% elif e.ist_tanken and not e.tank_voll %}<span class="leise">Teilfüllung</span>{% elif e.ist_fahrt %}{{ e.start_ort|default:"?" }} → {{ e.ort|default:"?" }}{% elif e.beschreibung %}💬 {{ e.beschreibung|truncatechars:60 }}{% elif e.ort %}📍 {{ e.ort }}{% endif %}</span>
-    <span class="leise">{% if z.strecke is not None %}📏 {{ z.strecke|zahl }} km{% endif %}{% if e.menge %} · {{ e.menge|zahl:2 }} {% if e.kraftstoff_nr == 2 %}{{ fahrzeug.einheit2 }}{% else %}{{ fahrzeug.einheit }}{% endif %}{% endif %}</span>
+    <span class="leise">{% if e.ist_fahrt %}{% if e.fahrtdauer %}⏱️ {{ e.fahrtdauer|dauer }}{% endif %}{% elif z.strecke is not None %}📏 {{ z.strecke|zahl }} km{% endif %}{% if e.menge %} · {{ e.menge|zahl:2 }} {% if e.kraftstoff_nr == 2 %}{{ fahrzeug.einheit2 }}{% else %}{{ fahrzeug.einheit }}{% endif %}{% endif %}</span>
   </div>
   {% if e.ist_tanken and e.ort or e.ist_tanken and e.beschreibung %}<div class="zusatz leise">{% if e.ort %}📍 {{ e.ort }}{% endif %} {% if e.beschreibung %}💬 {{ e.beschreibung|truncatechars:50 }}{% endif %}</div>{% endif %}
   {% if not e.ist_tanken and not e.ist_fahrt and e.beschreibung and e.ort %}<div class="zusatz leise">📍 {{ e.ort }}</div>{% endif %}

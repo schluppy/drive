@@ -1,0 +1,15 @@
+{% extends "portal/base.html" %}
+{% block titel %}Orte{% endblock %}
+{% block inhalt %}
+<h1>Orte</h1>
+<p class="leise">Ein Ort entsteht, wenn er zum ersten Mal in einem Eintrag steht, und lässt sich danach beim Tippen auswählen. Umbenennen ändert ihn in allen Einträgen; wer einem Ort den Namen eines anderen gibt, führt beide zusammen.</p>
+<div class="karte weiss tabelle-rahmen">
+<table>
+  <thead><tr><th>Ort</th><th class="zahl">als Ort/Ziel</th><th class="zahl">als Start</th></tr></thead>
+  <tbody>
+  {% for o in orte %}<tr><td><a href="{% url 'logbuch:ort' o.pk %}">{{ o }}</a></td><td class="zahl">{{ o.n_ziel }}</td><td class="zahl">{{ o.n_start }}</td></tr>
+  {% empty %}<tr><td colspan="3" class="leise">Noch keine Orte.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

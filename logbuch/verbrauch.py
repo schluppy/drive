@@ -182,22 +182,120 @@ def km_pro_tag(fahrzeug, eintraege=None, heute=None):
     return Decimal(letzter.tachostand - basis.tachostand) / tage
 
 
+def tachopunkte(eintraege):
+    """[(Zeitpunkt, km)] aller Einträge mit Tachostand, nach Zeit. Wie DriveNote zählt nur der Stand am
+    Ende eines Eintrags (bei Fahrten das Ziel). Ein Stand unter einem früheren zählt nicht, damit
+    Tippfehler die Kurve nicht zurückdrehen."""
+    roh = sorted((timezone.localtime(e.zeitpunkt), e.tachostand) for e in eintraege if e.tachostand is not None)
+    punkte = []
+    for zp, km in roh:
+        if punkte and km < punkte[-1][1]:
+            continue
+        if punkte and punkte[-1][0] == zp:
+            punkte[-1] = (zp, km)
+        else:
+            punkte.append((zp, km))
+    return punkte
+
+
+def _tage(von, bis):
+    return Decimal((bis - von).total_seconds()) / 86400
+
+
+def _anfang(tag_):
+    """Mitternacht eines Tages in Ortszeit"""
+    from datetime import datetime, time
+    return timezone.make_aware(datetime.combine(tag_, time()))
+
+
+def stand_am(punkte, zp):
+    """Tachostand zu einem Zeitpunkt, linear zwischen den Einträgen; vor dem ersten None, nach dem letzten der letzte."""
+    if not punkte or zp < punkte[0][0]:
+        return None
+    for (z0, k0), (z1, k1) in zip(punkte, punkte[1:]):
+        if z0 <= zp <= z1:
+            return Decimal(k0) + Decimal(k1 - k0) * _tage(z0, zp) / _tage(z0, z1)
+    return Decimal(punkte[-1][1])
+
+
+@dataclass
+class Zeitraum:
+    """Fahrleistung in einem Zeitraum (Jahr oder Monat), Grenzen interpoliert wie in DriveNote."""
+    von: object
+    bis: object
+    km: Decimal
+    erster: Decimal | None = None   # Tachostand am Anfang und Ende des Zeitraums
+    letzter: Decimal | None = None
+
+    @property
+    def tage(self):
+        return _tage(self.von, self.bis)
+
+    @property
+    def pro_tag(self):
+        return self.km / self.tage if self.tage > 0 else None
+
+    @property
+    def pro_monat(self):
+        return self.pro_tag * Decimal("30.4375") if self.pro_tag is not None else None
+
+
+def fahrleistung_zeitraum(punkte, von, bis):
+    """von, bis: Tage; von einschließlich, bis ausschließlich – beschnitten auf den Bereich mit Einträgen."""
+    if not punkte:
+        return None
+    a, b = max(_anfang(von), punkte[0][0]), min(_anfang(bis), punkte[-1][0])
+    if b < a:
+        return None
+    erster, letzter = stand_am(punkte, a), stand_am(punkte, b)
+    return Zeitraum(a, b, letzter - erster, erster, letzter)
+
+
 def jahresfahrleistung(fahrzeug, eintraege=None):
-    """{Jahr: km} – Tachostand am Jahresende minus Stand am Ende des Vorjahres (bzw. beim Kauf)."""
-    liste = mit_tachostand(eintraege if eintraege is not None else fahrzeug.eintraege.all())
-    if not liste:
+    """{Jahr: Zeitraum} von Jahresanfang zu Jahresanfang (bzw. erstem/letztem Eintrag)."""
+    punkte = tachopunkte(eintraege if eintraege is not None else fahrzeug.eintraege.all())
+    if not punkte:
         return {}
-    hoechster = {}
-    for e in liste:
-        jahr = timezone.localtime(e.zeitpunkt).year
-        hoechster[jahr] = max(hoechster.get(jahr, 0), e.tachostand)
     ergebnis = {}
-    vorher = start_tachostand(fahrzeug, liste)
-    for jahr in sorted(hoechster):
-        stand = max(hoechster[jahr], vorher)
-        ergebnis[jahr] = stand - vorher
-        vorher = stand
+    for jahr in range(punkte[0][0].year, punkte[-1][0].year + 1):
+        z = fahrleistung_zeitraum(punkte, date(jahr, 1, 1), date(jahr + 1, 1, 1))
+        if z is not None:
+            ergebnis[jahr] = z
     return ergebnis
+
+
+def monatsfahrleistung(fahrzeug, jahr, eintraege=None):
+    punkte = tachopunkte(eintraege if eintraege is not None else fahrzeug.eintraege.all())
+    werte = []
+    for m in range(1, 13):
+        z = fahrleistung_zeitraum(punkte, date(jahr, m, 1), date(jahr + m // 12, m % 12 + 1, 1))
+        werte.append(z.km if z else 0)
+    return werte
+
+
+@dataclass
+class Fahrleistung:
+    gesamt: Decimal
+    pro_tag: Decimal | None
+    prognose_jahr: int
+    prognose: Decimal | None
+
+
+def fahrleistung_kennzahlen(fahrzeug, eintraege=None, heute=None):
+    """Gesamt und pro Tag über alle Einträge; Prognose fürs laufende Jahr = bisher + pro Tag × Rest des Jahres."""
+    heute = heute or date.today()
+    punkte = tachopunkte(eintraege if eintraege is not None else fahrzeug.eintraege.all())
+    if len(punkte) < 2:
+        return Fahrleistung(Decimal(0), None, heute.year, None)
+    gesamt = Decimal(punkte[-1][1] - punkte[0][1])
+    tage = _tage(punkte[0][0], punkte[-1][0])
+    pro_tag = gesamt / tage if tage > 0 else None
+    jahr = jahresfahrleistung(fahrzeug, eintraege).get(heute.year)
+    prognose = None
+    if pro_tag is not None and jahr is not None:
+        ab = max(jahr.bis, _anfang(heute) if heute != date.today() else timezone.now())
+        prognose = jahr.km + pro_tag * max(_tage(ab, _anfang(date(heute.year + 1, 1, 1))), 0)
+    return Fahrleistung(gesamt, pro_tag, heute.year, prognose)
 
 
 @dataclass

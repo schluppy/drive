@@ -32,7 +32,7 @@ class ImportTest(TestCase):
         self.assertEqual(tucson.halter, self.person)
         self.assertTrue(tucson.foto)
         wohnwagen = Fahrzeug.objects.get(import_uuid="uuid-fz-3")
-        self.assertEqual(wohnwagen.art, "anhaenger")
+        self.assertEqual(wohnwagen.art, "wohnwagen")
         self.assertEqual(wohnwagen.kraftstoff, "")
 
     def test_eintraege(self):
@@ -47,8 +47,10 @@ class ImportTest(TestCase):
         self.assertFalse(teil.tank_voll)
         fahrt = Eintrag.objects.get(import_uuid="uuid-fahrt")
         self.assertEqual(fahrt.kategorie.art, "fahrt")
-        self.assertEqual((fahrt.start_km, fahrt.tachostand, fahrt.start_ort, fahrt.ort),
-                         (25826, 25942, "Camping SPO", "Kölln-Reisiek"))
+        self.assertEqual((fahrt.start_km, fahrt.tachostand, fahrt.start_ort.name, fahrt.ort.name, fahrt.kosten),
+                         (25826, 25942, "Camping SPO", "Kölln-Reisiek", 0))
+        camp = Eintrag.objects.get(import_uuid="uuid-camp")
+        self.assertEqual(camp.ort, fahrt.start_ort)   # derselbe Ort
         self.assertEqual(fahrt.fahrtstrecke, 116)
         waesche = Eintrag.objects.get(import_uuid="uuid-waesche")
         self.assertEqual(waesche.kategorie.name, "Autowäsche")   # vorhandene Kategorie wiederverwendet

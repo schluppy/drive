@@ -2,7 +2,7 @@
 {% block titel %}{{ fahrzeug }}{% endblock %}
 {% block inhalt %}
 <div class="held">
-  {% if fahrzeug.foto %}<img class="foto" src="{% url 'fahrzeuge:foto' fahrzeug.pk %}" alt="Foto {{ fahrzeug }}">{% else %}<div class="foto foto-leer" aria-hidden="true">{% if fahrzeug.ist_anhaenger %}🚐{% else %}🚗{% endif %}</div>{% endif %}
+  {% if fahrzeug.foto %}<img class="foto" src="{% url 'fahrzeuge:foto' fahrzeug.pk %}" alt="Foto {{ fahrzeug }}">{% else %}<div class="foto foto-leer" aria-hidden="true">{% if fahrzeug.ohne_motor %}🚐{% else %}🚗{% endif %}</div>{% endif %}
   <div class="karte">
     <div class="kopfzeile"><h1>{{ fahrzeug }}</h1><a class="klein" href="{% url 'fahrzeuge:bearbeiten' fahrzeug.pk %}">Bearbeiten</a></div>
     <div class="kennzahlen">

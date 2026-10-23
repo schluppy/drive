@@ -2,7 +2,7 @@ from django import forms
 
 from konten.models import Person
 
-from .models import Fahrzeug
+from .models import OHNE_MOTOR, Fahrzeug
 
 
 def _dezimal(feld):
@@ -39,9 +39,10 @@ class FahrzeugForm(forms.ModelForm):
 
     def clean(self):
         daten = super().clean()
-        if daten.get("art") != "anhaenger" and not daten.get("kraftstoff"):
+        ohne_motor = daten.get("art") in OHNE_MOTOR
+        if not ohne_motor and not daten.get("kraftstoff"):
             self.add_error("kraftstoff", "Bitte den Kraftstoff angeben.")
-        if daten.get("art") == "anhaenger":
+        if ohne_motor:
             daten["kraftstoff"] = daten["kraftstoff2"] = ""
         if daten.get("kraftstoff2") and daten.get("kraftstoff2") == daten.get("kraftstoff"):
             self.add_error("kraftstoff2", "Der zweite Kraftstoff muss sich vom ersten unterscheiden.")

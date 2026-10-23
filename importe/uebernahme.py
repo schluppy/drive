@@ -14,7 +14,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 
 from fahrzeuge.models import Fahrzeug
-from logbuch.models import Eintrag, Erinnerung, Kategorie, Kategorieart
+from logbuch.models import Eintrag, Erinnerung, Kategorie, Kategorieart, Ort
 
 from . import drivenote
 
@@ -147,6 +147,10 @@ def uebernehmen(backup, person, zuordnung):
             felder.update(menge=None, tank_voll=True, vorherige_fehlt=False, bc_verbrauch=None, kraftstoff_nr=1)
         if kat.art != Kategorieart.FAHRT:
             felder.update(start_zeitpunkt=None, start_km=None, start_ort="")
+        else:
+            felder["kosten"] = 0   # Fahrten haben keine Kosten
+        felder["ort"] = Ort.holen(familie, felder["ort"])
+        felder["start_ort"] = Ort.holen(familie, felder["start_ort"])
         vorhanden = (Eintrag.objects.filter(fahrzeug__familie=familie, import_uuid=felder["import_uuid"]).first()
                      if felder["import_uuid"] else None)
         if vorhanden:

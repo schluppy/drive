@@ -20,7 +20,7 @@
       {% if user.is_authenticated and user.familie_id %}
       <a href="{% url 'portal:start' %}" {% if seite == 'start' %}aria-current="page"{% endif %}>Fahrzeuge</a>
       <a href="{% url 'auswertung:vergleich' %}" {% if seite == 'vergleich' %}aria-current="page"{% endif %}>Vergleich</a>
-      <a href="{% url 'portal:familie' %}" {% if seite == 'familie' or seite == 'profil' or app == 'importe' or seite == 'kategorien' %}aria-current="page"{% endif %}>Familie</a>
+      <a href="{% url 'portal:familie' %}" {% if seite == 'familie' or seite == 'profil' or app == 'importe' or seite == 'kategorien' or seite == 'orte' or seite == 'ort' %}aria-current="page"{% endif %}>Familie</a>
       {% endif %}
       {% if user.is_authenticated %}
       {% if user.is_superuser %}<a href="{% url 'admin:index' %}" title="Verwaltung">⚙︎</a>{% endif %}
@@ -35,7 +35,7 @@
   <div class="reiter-innen">
     <a href="{% url 'fahrzeuge:uebersicht' fahrzeug.pk %}" {% if tab == 'fahrzeug' %}aria-current="page"{% endif %}><span aria-hidden="true">🚗</span>Fahrzeug</a>
     <a href="{% url 'logbuch:liste' fahrzeug.pk %}" {% if tab == 'logbuch' %}aria-current="page"{% endif %}><span aria-hidden="true">📄</span>Logbuch</a>
-    {% if not fahrzeug.ist_anhaenger %}<a href="{% url 'auswertung:statistik' fahrzeug.pk %}" {% if tab == 'statistik' %}aria-current="page"{% endif %}><span aria-hidden="true">📈</span>Statistik</a>{% endif %}
+    <a href="{% url 'auswertung:statistik' fahrzeug.pk %}" {% if tab == 'statistik' %}aria-current="page"{% endif %}><span aria-hidden="true">📈</span>Statistik</a>
     <a href="{% url 'auswertung:kosten' fahrzeug.pk %}" {% if tab == 'kosten' %}aria-current="page"{% endif %}><span aria-hidden="true">🍩</span>Kosten</a>
     <a href="{% url 'logbuch:erinnerungen' fahrzeug.pk %}" {% if tab == 'erinnerungen' %}aria-current="page"{% endif %}><span aria-hidden="true">📅</span>Termine</a>
   </div>

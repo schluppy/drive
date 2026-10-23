@@ -12,15 +12,20 @@ Diagramme als SVG vom Server. Fürs Handy gebaut, lässt sich als Web-App auf de
 ## Was die App kann
 
 - **Fahrzeuge** mit Foto, Kennzeichen, Versicherung, Kauf und Verkauf; bis zu zwei Kraftstoffe
-  (z. B. Diesel + AdBlue); Anhänger und Wohnwagen ohne Kraftstoff, mit Fahrten.
+  (z. B. Diesel + AdBlue); Wohnwagen und Anhänger ohne Motor – sie tanken nicht, ihre Strecke
+  kommt aus den Fahrten.
 - **Logbuch** nach Monaten: Tankfüllung (Gesamtpreis, Preis pro Liter, Menge – zwei reichen),
   voll oder Teilfüllung, „vorherige Tankfüllung nicht erfasst“, Bordcomputer-Verbrauch;
-  Fahrten mit Start und Ziel; Kosteneinträge in eigenen Kategorien; Prüfung, ob Tachostand und
-  Datum zu den übrigen Einträgen passen.
+  Fahrten mit Start und Ziel, ohne Kosten – beim Tachostand Ziel addiert `=345+28+70` die
+  Strecken (etwa aus Google Maps) zum Start; Kosteneinträge in eigenen Kategorien; Prüfung, ob
+  Tachostand und Datum zu den übrigen Einträgen passen.
+- **Orte** (Tankstelle, Werkstatt, Campingplatz, Start, Ziel) entstehen beim ersten Eintrag und
+  sind danach beim Tippen auswählbar; unter Familie → Orte umbenennen oder zusammenführen.
 - **Verbrauch** von voller zu voller Tankfüllung: Gesamt, Aktuell (mit Trendpfeil), Bordcomputer
   (nach Strecke gewichtet) – gerechnet wie DriveNote (`logbuch/verbrauch.py`).
-- **Statistik**: Verbrauch, Strecke je Tankfüllung, Preis je Liter, Fahrleistung, Tachostand;
-  je Jahr oder gesamt.
+- **Statistik**: Verbrauch, Strecke je Tankfüllung, Preis je Liter; Fahrleistung je Jahr bzw. Monat
+  mit km pro Tag und Prognose fürs laufende Jahr, Tachostand am Jahresanfang und -ende – die
+  Jahresgrenzen linear zwischen den Einträgen interpoliert wie in DriveNote.
 - **Kosten**: Verteilung nach Kategorie, Entwicklung je Jahr bzw. Monat, Kosten pro km (kumuliert).
 - **Serien** für wiederkehrende Kosten (Versicherung, Steuer …), täglich gebucht.
 - **Erinnerungen** nach Datum, Tachostand oder beidem, auch wiederkehrend (TÜV alle 24 Monate,

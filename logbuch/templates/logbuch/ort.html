@@ -1,0 +1,19 @@
+{% extends "portal/base.html" %}
+{% block titel %}{{ ort }}{% endblock %}
+{% block inhalt %}
+<h1>📍 {{ ort }}</h1>
+<form method="post" class="formular">
+  {% csrf_token %}
+  {% include "portal/felder.html" %}
+  <p class="leise klein">Heißt ein anderer Ort schon so, werden beide zusammengeführt.</p>
+  <div class="knoepfe"><button class="knopf" type="submit">Speichern</button>
+  <a class="knopf zweit" href="{% url 'logbuch:orte' %}">Abbrechen</a>
+  {% if not eintraege %}<button class="knopf gefahr klein" name="loeschen" value="1" type="submit" formnovalidate onclick="return confirm('Ort löschen?')">Löschen</button>{% endif %}</div>
+</form>
+{% if eintraege %}
+<h2>Verwendet in</h2>
+<div class="karte weiss"><table><tbody>
+{% for e in eintraege %}<tr><td>{{ e.zeitpunkt|date:"d.m.y" }}</td><td><a href="{% url 'logbuch:bearbeiten' e.pk %}">{{ e.kategorie }}</a></td><td>{{ e.fahrzeug }}</td><td class="leise klein">{% if e.start_ort_id == ort.pk %}Start{% else %}{% if e.ist_fahrt %}Ziel{% else %}Ort{% endif %}{% endif %}</td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+{% endblock %}

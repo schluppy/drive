@@ -11,7 +11,7 @@ from logbuch.models import Kategorieart
 
 
 def eintraege_von(fahrzeug):
-    return list(fahrzeug.eintraege.select_related("kategorie", "erfasst_von"))
+    return list(fahrzeug.eintraege.select_related("kategorie", "erfasst_von", "ort", "start_ort"))
 
 
 @dataclass
@@ -73,7 +73,8 @@ def kennzahlen(fahrzeug, eintraege=None, jahr=None):
     if jahr is None:
         fahrleistung = vb.fahrleistung(fahrzeug, eintraege)
     else:
-        fahrleistung = vb.jahresfahrleistung(fahrzeug, eintraege).get(jahr, 0)
+        z = vb.jahresfahrleistung(fahrzeug, eintraege).get(jahr)
+        fahrleistung = int(round(z.km)) if z else 0
     return Kennzahlen(
         fahrzeug=fahrzeug, eintraege=eintraege,
         tachostand=vb.aktueller_tachostand(fahrzeug, eintraege),

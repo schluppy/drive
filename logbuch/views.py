@@ -3,6 +3,7 @@ from itertools import groupby
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import models
 from django.db.models import Count, ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -14,9 +15,9 @@ from portal.templatetags.drive import deutsch
 from portal.zugriff import eigene_kategorien, eigener_eintrag, eigenes_fahrzeug, familie_noetig
 
 from . import verbrauch as vb
-from .forms import (ErinnerungForm, ErledigtForm, FahrtForm, KategorieForm, KostenForm, SerieForm, TankenForm,
-                    zeitpunkt_am)
-from .models import Eintrag, Erinnerung, Kategorie, Kategorieart, Serie
+from .forms import (ErinnerungForm, ErledigtForm, FahrtForm, KategorieForm, KostenForm, OrtForm, SerieForm,
+                    TankenForm, zeitpunkt_am)
+from .models import Eintrag, Erinnerung, Kategorie, Kategorieart, Ort, Serie
 
 MONATSNAMEN = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
                "November", "Dezember"]
@@ -95,6 +96,7 @@ def _form(art, request, fahrzeug, eintrag, initial=None):
 def _vorlage(art, form, fahrzeug, eintrag, extra=None):
     letzte = fahrzeug.eintraege.filter(tachostand__isnull=False).order_by("-zeitpunkt").first()
     return {"form": form, "fahrzeug": fahrzeug, "eintrag": eintrag, "art": art, "titel": TITEL[art],
+            "orte": Ort.objects.filter(familie_id=fahrzeug.familie_id),
             "letzter_stand": letzte.tachostand if letzte else None, "tab": "logbuch", **(extra or {})}
 
 
@@ -113,9 +115,14 @@ def neu(request, fahrzeug_id, art):
         if erinnerung:
             initial.update(kategorie=erinnerung.kategorie, beschreibung=erinnerung.notiz)
     if art == Kategorieart.FAHRT:
-        letzte = fahrzeug.eintraege.filter(tachostand__isnull=False).order_by("-zeitpunkt", "-tachostand").first()
-        if letzte:
-            initial.update(start_km=letzte.tachostand, start_ort=letzte.ort if letzte.ist_fahrt else "")
+        # Start = höchster bekannter Stand und Ziel der letzten Fahrt
+        hoechster = fahrzeug.eintraege.filter(tachostand__isnull=False).order_by("-tachostand").first()
+        letzte_fahrt = fahrzeug.eintraege.filter(kategorie__art=Kategorieart.FAHRT, ort__isnull=False).select_related(
+            "ort").order_by("-zeitpunkt").first()
+        if hoechster:
+            initial["start_km"] = hoechster.tachostand
+        if letzte_fahrt:
+            initial["start_ort_name"] = letzte_fahrt.ort.name
     if art == Kategorieart.TANKEN and len(fahrzeug.kraftstoffe) > 1 and request.GET.get("kraftstoff") == "2":
         initial["kraftstoff_nr"] = 2
     eintrag = Eintrag(fahrzeug=fahrzeug, kategorie=Kategorie.fuer(request.user.familie, art)
@@ -248,13 +255,15 @@ def erinnerung_erledigt(request, fahrzeug_id, pk):
         d = form.cleaned_data
         if d["kosten"]:
             Eintrag.objects.create(fahrzeug=fahrzeug, kategorie=erinnerung.kategorie, zeitpunkt=zeitpunkt_am(d["datum"]),
-                                   tachostand=d["tachostand"], kosten=d["kosten"], ort=d["ort"],
+                                   tachostand=d["tachostand"], kosten=d["kosten"],
+                                   ort=Ort.holen(request.user.familie, d["ort"]),
                                    beschreibung=erinnerung.notiz, erfasst_von=request.user)
         _erledigen(erinnerung, d["datum"], d["tachostand"])
         messages.success(request, f"„{erinnerung}“ erledigt"
                          + (" – die nächste ist eingetragen." if erinnerung.wiederkehrend else "."))
         return redirect("logbuch:erinnerungen", fahrzeug.pk)
     return render(request, "logbuch/erledigt.html", {"form": form, "fahrzeug": fahrzeug, "erinnerung": erinnerung,
+                                                     "orte": Ort.objects.filter(familie_id=fahrzeug.familie_id),
                                                      "tab": "erinnerungen"})
 
 
@@ -290,3 +299,41 @@ def kategorie_bearbeiten(request, pk=None):
                 messages.success(request, "Kategorie gespeichert.")
                 return redirect("logbuch:kategorien")
     return render(request, "logbuch/kategorie.html", {"form": form, "kategorie": kat})
+
+
+# --- Orte (je Familie) -----------------------------------------------------------------
+
+@familie_noetig
+def orte(request):
+    liste_ = Ort.objects.filter(familie_id=request.user.familie_id).annotate(
+        n_ziel=Count("eintraege", distinct=True), n_start=Count("fahrtstarts", distinct=True))
+    return render(request, "logbuch/orte.html", {"orte": liste_})
+
+
+@familie_noetig
+def ort_bearbeiten(request, pk):
+    ort = get_object_or_404(Ort, pk=pk, familie_id=request.user.familie_id)
+    form = OrtForm(request.POST or None, instance=ort)
+    if request.method == "POST":
+        if "loeschen" in request.POST:
+            if ort.anzahl:
+                messages.error(request, f"„{ort}“ steht noch in {ort.anzahl} Einträgen – umbenennen oder zusammenführen.")
+                return redirect("logbuch:ort", ort.pk)
+            ort.delete()
+            messages.success(request, f"„{ort}“ gelöscht.")
+            return redirect("logbuch:orte")
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            anderer = Ort.objects.filter(familie_id=request.user.familie_id, name__iexact=name).exclude(pk=ort.pk).first()
+            if anderer:
+                n = ort.anzahl
+                ort.zusammenfuehren(anderer)
+                messages.success(request, f"Mit „{anderer}“ zusammengeführt ({n} Einträge).")
+            else:
+                Ort.objects.filter(pk=ort.pk).update(name=name)
+                messages.success(request, f"In „{name}“ umbenannt – in allen Einträgen.")
+            return redirect("logbuch:orte")
+    eintraege = (Eintrag.objects.filter(fahrzeug__familie_id=request.user.familie_id)
+                 .filter(models.Q(ort=ort) | models.Q(start_ort=ort))
+                 .select_related("fahrzeug", "kategorie").order_by("-zeitpunkt")[:30])
+    return render(request, "logbuch/ort.html", {"form": form, "ort": ort, "eintraege": eintraege})

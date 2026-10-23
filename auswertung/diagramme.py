@@ -76,7 +76,7 @@ def linien(serien, einheit="", stellen_wert=2, hoehe=H, flaeche=False, null_basi
     lo, hi = (0 if null_basis else min(werte)), max(werte)
     if not null_basis:
         spanne = (hi - lo) or abs(hi) or 1
-        lo -= spanne * 0.08
+        lo = max(lo - spanne * 0.08, 0) if lo >= 0 else lo - spanne * 0.08   # keine negative Achse für km, €, l
         hi += spanne * 0.08
     ticks, schritt = _schoene_schritte(lo, hi)
     lo, hi = ticks[0], ticks[-1]

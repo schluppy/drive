@@ -70,7 +70,32 @@ class VerbrauchTest(TestCase):
         tanken(self.f, "01.06.2025", 1000, 50, 80)
         tanken(self.f, "20.12.2025", 9000, 50, 80)
         tanken(self.f, "05.03.2026", 12000, 60, 100)
-        self.assertEqual(vb.jahresfahrleistung(self.f), {2025: 8000, 2026: 3000})
+        jf = vb.jahresfahrleistung(self.f)
+        # der 1.1.2026 liegt 12 von 75 Tagen nach dem 20.12.2025: Stand 9000 + 3000 × 12/75 = 9480
+        self.assertAlmostEqual(jf[2025].km, Decimal(8480))
+        self.assertAlmostEqual(jf[2026].km, Decimal(2520))
+
+    def test_wohnwagen_fahrten_und_prognose(self):
+        from logbuch.models import Eintrag, Kategorieart
+        from .hilfen import zp
+        wohnwagen = fahrzeug(self.familie, self.person, art="wohnwagen", kraftstoff="")
+        fahrt = Kategorie.fuer(self.familie, Kategorieart.FAHRT)
+        Eintrag.objects.create(fahrzeug=wohnwagen, kategorie=fahrt, start_km=0, zeitpunkt=zp("01.01.2026"), tachostand=100)
+        Eintrag.objects.create(fahrzeug=wohnwagen, kategorie=fahrt, start_km=100, zeitpunkt=zp("02.03.2026"),
+                               tachostand=700)
+        fl = vb.fahrleistung_kennzahlen(wohnwagen, heute=date(2026, 12, 1))
+        self.assertEqual(fl.gesamt, 600)
+        self.assertAlmostEqual(fl.pro_tag, Decimal(10))
+        self.assertAlmostEqual(fl.prognose, 600 + 10 * 31)
+        z = vb.jahresfahrleistung(wohnwagen)[2026]
+        self.assertEqual((z.erster, z.letzter, z.km), (100, 700, 600))
+
+    def test_jahresgrenze_interpoliert(self):
+        tanken(self.f, "01.12.2025", 1000, 50, 80)
+        tanken(self.f, "31.01.2026", 1620, 50, 80)
+        jf = vb.jahresfahrleistung(self.f)
+        self.assertAlmostEqual(jf[2025].letzter, 1000 + Decimal(620) * 31 / 61)   # 31 von 61 Tagen
+        self.assertAlmostEqual(jf[2025].km + jf[2026].km, Decimal(620))
 
     def test_faelligkeit_schaetzt_datum_aus_km(self):
         kat = Kategorie.objects.get(familie=self.familie, name="Reparatur")

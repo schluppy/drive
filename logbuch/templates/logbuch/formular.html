@@ -24,30 +24,32 @@
     <h3 class="abschnitt-titel">Details</h3>
     {% with feld=form.vorherige_fehlt %}{% include "portal/feld.html" %}{% endwith %}
     {% with feld=form.bc_verbrauch %}{% include "portal/feld.html" %}{% endwith %}
-    {% with feld=form.ort %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.ort_name %}{% include "portal/feld.html" %}{% endwith %}
     {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
   {% elif art == "fahrt" %}
     <h3 class="abschnitt-titel">Start</h3>
     <div class="zeile2">{% with feld=form.start_km %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.start_zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}</div>
-    {% with feld=form.start_ort %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.start_ort_name %}{% include "portal/feld.html" %}{% endwith %}
     <h3 class="abschnitt-titel">Ziel</h3>
-    <div class="zeile2">{% with feld=form.tachostand %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}</div>
-    {% with feld=form.ort %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.ort_name %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.tachostand %}{% include "portal/feld.html" %}{% endwith %}
+    <p class="hilfe klein" id="formel-ergebnis" aria-live="polite" style="margin-top:-.7rem"></p>
+    {% with feld=form.zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}
     <h3 class="abschnitt-titel">Details</h3>
-    {% with feld=form.kosten %}{% include "portal/feld.html" %}{% endwith %}
     {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
   {% else %}
     {% with feld=form.kategorie %}{% include "portal/feld.html" %}{% endwith %}
     <div class="zeile2">{% with feld=form.tachostand %}{% include "portal/feld.html" %}{% endwith %}{% with feld=form.zeitpunkt %}{% include "portal/feld.html" %}{% endwith %}</div>
     {% if letzter_stand and not eintrag.pk %}<p class="hilfe leise klein" style="margin-top:-.7rem">Zuletzt: {{ letzter_stand|km }}</p>{% endif %}
     {% with feld=form.kosten %}{% include "portal/feld.html" %}{% endwith %}
-    {% with feld=form.ort %}{% include "portal/feld.html" %}{% endwith %}
+    {% with feld=form.ort_name %}{% include "portal/feld.html" %}{% endwith %}
     {% with feld=form.beschreibung %}{% include "portal/feld.html" %}{% endwith %}
   {% endif %}
   {% if form.unplausibel or form.trotzdem.value %}{% with feld=form.trotzdem %}{% include "portal/feld.html" %}{% endwith %}{% endif %}
   {% if eintrag.pk %}<p class="leise klein">Erfasst von {{ eintrag.erfasst_von|default:"–" }}{% if eintrag.serie %} · aus der Serie „{{ eintrag.serie }}“{% endif %}</p>{% endif %}
   <div class="knoepfe"><button class="knopf" type="submit">Speichern</button>
   <a class="knopf zweit" href="{% url 'logbuch:liste' fahrzeug.pk %}">Abbrechen</a></div>
+  {% include "logbuch/orte_auswahl.html" %}
 </form>
 {% if eintrag.pk %}
 <form method="post" action="{% url 'logbuch:loeschen' eintrag.pk %}" onsubmit="return confirm('Eintrag wirklich löschen?')">
@@ -55,7 +57,25 @@
 </form>
 {% endif %}
 {% endblock %}
-{% block skript %}{% if art == "tanken" %}<script>
+{% block skript %}{% if art == "fahrt" %}<script>
+// „=345+28+70“ im Tachostand Ziel: Strecke zum Start addieren, Ergebnis gleich anzeigen
+(function () {
+  const f = document.getElementById("eintrag");
+  const start = f.elements.start_km, ziel = f.elements.tachostand, aus = document.getElementById("formel-ergebnis");
+  const de = (n) => Math.round(n).toLocaleString("de-DE");
+  function zeigen() {
+    const t = (ziel.value || "").replace(/\s/g, "");
+    if (!t.startsWith("=")) { aus.textContent = ""; return; }
+    const teile = t.slice(1).split("+").filter(Boolean).map((x) => parseFloat(x.replace(",", ".")));
+    const s = parseInt((start.value || "").replace(/\./g, ""), 10);
+    if (!teile.length || teile.some(isNaN)) { aus.textContent = "Nach „=“ nur Zahlen mit „+“."; return; }
+    const strecke = teile.reduce((a, b) => a + b, 0);
+    aus.textContent = isNaN(s) ? `Strecke ${de(strecke)} km – Tachostand am Start fehlt`
+      : `${de(s)} km + ${de(strecke)} km = ${de(s + strecke)} km`;
+  }
+  ziel.addEventListener("input", zeigen); start.addEventListener("input", zeigen); zeigen();
+})();
+</script>{% endif %}{% if art == "tanken" %}<script>
 // Gesamtpreis, Preis pro Liter, Menge: aus zweien den dritten rechnen (wie in DriveNote)
 (function () {
   const f = document.getElementById("eintrag");

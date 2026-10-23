@@ -39,7 +39,7 @@ class SeitenTest(TestCase):
                     reverse("logbuch:serien", args=[f]), reverse("logbuch:serie_neu", args=[f]),
                     reverse("logbuch:erinnerungen", args=[f]), reverse("logbuch:erinnerung_neu", args=[f]),
                     reverse("logbuch:erledigt", args=[f, er.pk]), reverse("logbuch:kategorien"),
-                    reverse("logbuch:kategorie_neu"), reverse("auswertung:statistik", args=[f]),
+                    reverse("logbuch:kategorie_neu"), reverse("logbuch:orte"), reverse("auswertung:statistik", args=[f]),
                     reverse("auswertung:statistik", args=[f]) + "?jahr=2026", reverse("auswertung:kosten", args=[f]),
                     reverse("auswertung:kosten", args=[f]) + "?jahr=2026", reverse("auswertung:vergleich"),
                     reverse("auswertung:vergleich") + "?jahr=2026"]:
@@ -73,12 +73,45 @@ class SeitenTest(TestCase):
         antwort = self.client.post(reverse("logbuch:neu", args=[self.f.pk, "tanken"]), {**daten, "trotzdem": "on"})
         self.assertEqual(antwort.status_code, 302)
 
+    def _fahrt(self, ziel, **extra):
+        return self.client.post(reverse("logbuch:neu", args=[self.f.pk, "fahrt"]), {
+            "start_zeitpunkt": "2026-03-21T08:00", "start_km": "2500", "start_ort_name": "Zuhause",
+            "zeitpunkt": "2026-03-21T12:00", "tachostand": ziel, "ort_name": "Ostsee", **extra})
+
     def test_fahrt(self):
-        antwort = self.client.post(reverse("logbuch:neu", args=[self.f.pk, "fahrt"]), {
-            "start_zeitpunkt": "2026-03-21T08:00", "start_km": "2500", "start_ort": "Zuhause",
-            "zeitpunkt": "2026-03-21T12:00", "tachostand": "2800", "ort": "Ostsee"})
+        antwort = self._fahrt("2.800")
         self.assertEqual(antwort.status_code, 302)
-        self.assertEqual(Eintrag.objects.get(ort="Ostsee").fahrtstrecke, 300)
+        e = Eintrag.objects.get(ort__name="Ostsee")
+        self.assertEqual((e.fahrtstrecke, e.kosten, e.start_ort.name), (300, 0, "Zuhause"))
+
+    def test_fahrt_formel(self):
+        self.assertEqual(self._fahrt("=345+28+70").status_code, 302)
+        self.assertEqual(Eintrag.objects.get(ort__name="Ostsee").tachostand, 2943)
+
+    def test_fahrt_formel_eine_zahl_und_fehler(self):
+        self.assertEqual(self._fahrt("= 443").status_code, 302)
+        self.assertEqual(Eintrag.objects.get(ort__name="Ostsee").tachostand, 2943)
+        antwort = self._fahrt("=12+abc")
+        self.assertIn("tachostand", antwort.context["form"].errors)
+        antwort = self._fahrt("=443", start_km="")
+        self.assertTrue(antwort.context["form"].errors)
+
+    def test_orte_auswahl_umbenennen_zusammenfuehren(self):
+        from logbuch.models import Ort
+        self._fahrt("2800")
+        antwort = self.client.get(reverse("logbuch:neu", args=[self.f.pk, "fahrt"]))
+        self.assertContains(antwort, '<option value="Ostsee">')
+        self.assertEqual(antwort.context["form"].initial["start_ort_name"], "Ostsee")   # Ziel der letzten Fahrt
+        self._fahrt("=10", start_km="2800", ort_name=" ostsee  ")                       # kein zweiter Ort
+        self.assertEqual(Ort.objects.filter(familie=self.familie, name__iexact="ostsee").count(), 1)
+        zuhause = Ort.objects.get(name="Zuhause")
+        ostsee = Ort.objects.get(name="Ostsee")
+        self.client.post(reverse("logbuch:ort", args=[zuhause.pk]), {"name": "Daheim"})
+        self.assertEqual(Eintrag.objects.filter(start_ort__name="Daheim").count(), 2)
+        self.client.post(reverse("logbuch:ort", args=[ostsee.pk]), {"name": "daheim"})
+        self.assertFalse(Ort.objects.filter(pk=ostsee.pk).exists())
+        self.assertEqual(Eintrag.objects.filter(ort__name="Daheim").count(), 2)
+        self.assertEqual(self.client.get(reverse("logbuch:orte")).status_code, 200)
 
     def test_erinnerung_erledigen_legt_naechste_an(self):
         kat = Kategorie.objects.get(familie=self.familie, name="TÜV")

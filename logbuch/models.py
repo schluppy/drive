@@ -2,7 +2,7 @@
 
 Wie in DriveNote ist jede Zeile im Logbuch ein Eintrag mit Kategorie, Zeitpunkt,
 Tachostand und Kosten. Die Art der Kategorie bestimmt, welche Felder dazukommen:
-Tankfüllung (Kraftstoff, Menge, Füllstand, Bordcomputer) oder Fahrt (Start, Ziel).
+Tankfüllung (Kraftstoff, Menge, Füllstand, Bordcomputer) oder Fahrt (Start, Ziel; ohne Kosten).
 
 Berechnet und nicht gespeichert: Preis je Liter, Strecke seit dem vorigen Eintrag,
 Verbrauch (logbuch/verbrauch.py).
@@ -84,13 +84,54 @@ class Kategorie(models.Model):
         return kat
 
 
+class Ort(models.Model):
+    """Tankstelle, Werkstatt, Campingplatz, Start oder Ziel einer Fahrt. Entsteht beim ersten Eintrag,
+    der ihn nennt; danach beim Tippen auswählbar und unter Familie → Orte zu bearbeiten."""
+
+    familie = models.ForeignKey("konten.Familie", on_delete=models.CASCADE, related_name="orte")
+    name = models.CharField("Name", max_length=120)
+
+    class Meta:
+        verbose_name = "Ort"
+        verbose_name_plural = "Orte"
+        ordering = ["name"]
+        constraints = [models.UniqueConstraint(fields=["familie", "name"], name="ort_je_familie")]
+
+    def __str__(self):
+        return self.name
+
+    @staticmethod
+    def normal(name):
+        return " ".join((name or "").split())[:120]
+
+    @classmethod
+    def holen(cls, familie, name):
+        """Ort mit diesem Namen (Groß-/Kleinschreibung egal) – bei Bedarf neu angelegt; leer → None."""
+        name = cls.normal(name)
+        if not name:
+            return None
+        ort = cls.objects.filter(familie=familie, name__iexact=name).first()
+        return ort or cls.objects.create(familie=familie, name=name)
+
+    @property
+    def anzahl(self):
+        return self.eintraege.count() + self.fahrtstarts.count()
+
+    def zusammenfuehren(self, ziel):
+        """Alle Einträge auf `ziel` umhängen, diesen Ort löschen."""
+        self.eintraege.update(ort=ziel)
+        self.fahrtstarts.update(start_ort=ziel)
+        self.delete()
+
+
 class Eintrag(models.Model):
     fahrzeug = models.ForeignKey("fahrzeuge.Fahrzeug", on_delete=models.CASCADE, related_name="eintraege")
     kategorie = models.ForeignKey(Kategorie, on_delete=models.PROTECT, related_name="eintraege")
     zeitpunkt = models.DateTimeField("Datum")
     tachostand = models.PositiveIntegerField("Tachostand", null=True, blank=True, help_text="km")
     kosten = models.DecimalField("Kosten", max_digits=10, decimal_places=2, default=0)
-    ort = models.CharField("Ort", max_length=120, blank=True, help_text="Tankstelle, Werkstatt, Ziel …")
+    ort = models.ForeignKey(Ort, verbose_name="Ort", on_delete=models.SET_NULL, null=True, blank=True,
+                            related_name="eintraege", help_text="Tankstelle, Werkstatt, Ziel …")
     beschreibung = models.TextField("Beschreibung", blank=True)
     erfasst_von = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="erfasst von", on_delete=models.SET_NULL,
                                     null=True, blank=True, related_name="eintraege")
@@ -107,7 +148,8 @@ class Eintrag(models.Model):
     # Fahrt
     start_zeitpunkt = models.DateTimeField("Start", null=True, blank=True)
     start_km = models.PositiveIntegerField("Tachostand Start", null=True, blank=True)
-    start_ort = models.CharField("Startort", max_length=120, blank=True)
+    start_ort = models.ForeignKey(Ort, verbose_name="Startort", on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name="fahrtstarts")
 
     serie = models.ForeignKey("Serie", on_delete=models.SET_NULL, null=True, blank=True, related_name="eintraege")
     import_uuid = models.CharField(max_length=40, blank=True, db_index=True, editable=False)
