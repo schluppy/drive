@@ -203,3 +203,20 @@ class AnmeldungTest(TestCase):
 
     def test_ohne_anmeldung_umgeleitet(self):
         self.assertRedirects(self.client.get("/"), "/anmelden/?next=/")
+
+
+class OfflineTest(TestCase):
+    def test_offline_seite_ohne_anmeldung(self):
+        antwort = self.client.get("/offline/")
+        self.assertContains(antwort, "Keine Verbindung")
+        self.assertNotContains(antwort, "Abmelden")
+
+    def test_service_worker(self):
+        antwort = self.client.get("/sw.js")
+        self.assertEqual(antwort["Content-Type"], "text/javascript")
+        self.assertEqual(antwort["Cache-Control"], "no-cache")
+        self.assertContains(antwort, 'const OFFLINE = "/offline/"')
+        self.assertContains(antwort, "drive.css")
+
+    def test_registrierung_in_jeder_seite(self):
+        self.assertContains(self.client.get("/anmelden/"), 'serviceWorker.register("/sw.js")')

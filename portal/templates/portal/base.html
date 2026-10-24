@@ -97,6 +97,10 @@
   zeigen();
 })();
 </script>
+<script>
+  // Offline-Seite statt Fehlerseite des Browsers
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("{% url 'portal:service_worker' %}");
+</script>
 {% block skript %}{% endblock %}
 </body>
 </html>

@@ -14,4 +14,6 @@ urlpatterns = [
     path("profil/", views.profil, name="profil"),
     path("datenschutz/", views.datenschutz, name="datenschutz"),
     path("manifest.webmanifest", views.manifest, name="manifest"),
+    path("sw.js", views.service_worker, name="service_worker"),
+    path("offline/", views.offline, name="offline"),
 ]
