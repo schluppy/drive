@@ -111,3 +111,19 @@ class ImportTest(TestCase):
         import io
         with self.assertRaises(drivenote.BackupFehler):
             drivenote.lesen(io.BytesIO(b"kein zip"))
+
+    def test_hochladen_ohne_dateiendung(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        ordner = Path(tempfile.mkdtemp()) / "import"
+        self.enterContext(mock.patch("importe.views.ORDNER", ordner))
+        self.client.force_login(self.person)
+        seite = self.client.get("/import/")
+        self.assertNotContains(seite, "accept=")
+        datei = SimpleUploadedFile("Drivenote Backup 13.10.26", backup_zip().read(),
+                                   content_type="application/octet-stream")
+        antwort = self.client.post("/import/", {"backup": datei})
+        self.assertRedirects(antwort, "/import/zuordnen/")
