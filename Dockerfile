@@ -3,7 +3,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
     HOME=/tmp XDG_CACHE_HOME=/tmp/.cache
 WORKDIR /app
 # msmtp für den Mailversand
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
       msmtp ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
