@@ -46,6 +46,15 @@ def liste(request, fahrzeug_id):
         if schluessel in letzter and e.kategorie.art != Kategorieart.FAHRT:
             strecke[e.pk] = e.tachostand - letzter[schluessel]
         letzter[schluessel] = e.tachostand
+    # Tage seit dem vorigen Eintrag derselben Kategorie (Tankfüllungen: desselben Kraftstoffs), auch ohne Tachostand
+    tage = {}
+    letzter_tag = {}
+    for e in sorted((e for e in eintraege if e.kategorie.art != Kategorieart.FAHRT), key=lambda e: e.zeitpunkt):
+        schluessel = (e.kategorie_id, e.kraftstoff_nr if e.kategorie.art == Kategorieart.TANKEN else 0)
+        tag = timezone.localtime(e.zeitpunkt).date()
+        if schluessel in letzter_tag:
+            tage[e.pk] = (tag - letzter_tag[schluessel]).days
+        letzter_tag[schluessel] = tag
     abschnitt_bis = {}
     gesamt = {}
     for k in kz.kraftstoffe:
@@ -65,6 +74,7 @@ def liste(request, fahrzeug_id):
         if a and gesamt.get(e.kraftstoff_nr) is not None and a.verbrauch is not None:
             trend = "hoch" if a.verbrauch > gesamt[e.kraftstoff_nr] else "runter"
         zeilen.append({"e": e, "strecke": e.fahrtstrecke if e.kategorie.art == Kategorieart.FAHRT else strecke.get(e.pk),
+                       "tage": tage.get(e.pk),
                        "abschnitt": a, "trend": trend})
 
     def monat(z):

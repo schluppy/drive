@@ -56,6 +56,12 @@ class SeitenTest(TestCase):
         jahr = self.client.get(reverse("auswertung:statistik", args=[self.f.pk]) + "?jahr=2026")
         self.assertIsNone(jahr.context["kraftstoffe"][0]["summe"])
 
+    def test_logbuch_tage_seit_vorigem_eintrag(self):
+        antwort = self.client.get(reverse("logbuch:liste", args=[self.f.pk]))
+        tage = [z["tage"] for m in antwort.context["monate"] for z in m["zeilen"]]
+        self.assertEqual(tage, [28, 35, None])   # neueste zuerst: 05.03., 05.02., 01.01.
+        self.assertContains(antwort, "📅 28 Tage")
+
     def test_plus_nur_im_logbuch(self):
         f = self.f.pk
         self.assertContains(self.client.get(reverse("logbuch:liste", args=[f])), 'class="plus"')
