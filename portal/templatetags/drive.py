@@ -97,6 +97,16 @@ def dauer(wert):
 
 
 @register.filter
+def abstand(tage):
+    """Tage → „28 Tage“, ab mehr als 90 Tagen „3 Monate“ (Monat = 30 Tage, kaufmännisch gerundet; ADR 0001)"""
+    if tage is None:
+        return ""
+    if tage > 90:
+        return f"{(tage + 15) // 30} Monate"
+    return f"{tage} {'Tag' if tage == 1 else 'Tage'}"
+
+
+@register.filter
 def wechsel(pfad, fahrzeug_id):
     """Gleiche Seite für ein anderes Fahrzeug (Auswahl im Kopf); Formulare → Logbuch bzw. Übersicht."""
     import re

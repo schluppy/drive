@@ -62,6 +62,14 @@ class SeitenTest(TestCase):
         self.assertEqual(tage, [28, 35, None])   # neueste zuerst: 05.03., 05.02., 01.01.
         self.assertContains(antwort, "📅 28 Tage")
 
+    def test_abstand_in_tagen_und_monaten(self):
+        from portal.templatetags.drive import abstand
+        faelle = {0: "0 Tage", 1: "1 Tag", 28: "28 Tage", 90: "90 Tage", 91: "3 Monate", 101: "3 Monate",
+                  104: "3 Monate", 105: "4 Monate", 444: "15 Monate", None: ""}
+        for tage, text in faelle.items():
+            with self.subTest(tage=tage):
+                self.assertEqual(abstand(tage), text)
+
     def test_plus_nur_im_logbuch(self):
         f = self.f.pk
         self.assertContains(self.client.get(reverse("logbuch:liste", args=[f])), 'class="plus"')
